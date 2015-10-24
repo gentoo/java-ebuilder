@@ -182,7 +182,7 @@ public class PortageParser {
                         }
                     } else if (line.startsWith("SLOT=")) {
                         slot = line.substring("SLOT=".length()).replace(
-                                "\"", "");
+                                "\"", "").replaceAll("/.*", "");
                     } else if (line.startsWith("JAVA_PKG_OPT_USE=")) {
                         useFlag = line.substring("JAVA_PKG_OPT_USE=".length()).
                                 replace("\"", "");
