@@ -45,7 +45,7 @@ public class Main {
             generateEbuild(config);
         }
 
-        config.getStdoutWriter().println("Done!");
+        config.getStdoutWriter().println("Finished!");
         config.getStdoutWriter().flush();
         config.getErrorWriter().flush();
     }
@@ -120,7 +120,8 @@ public class Main {
                     + "only when generating ebuild.");
         }
 
-        if (!config.getCacheFile().toFile().exists()) {
+        if (!config.isRefreshCache()
+                && !config.getCacheFile().toFile().exists()) {
             config.getErrorWriter().println("ERROR: Cache file does not exist. "
                     + "First you must generate it using --refresh-cache.");
             Runtime.getRuntime().exit(1);
@@ -223,6 +224,6 @@ public class Main {
      */
     private static void refreshCache(final Config config) {
         final PortageParser portageParser = new PortageParser();
-        portageParser.parseTree(config.getPortageTree());
+        portageParser.parseTree(config);
     }
 }

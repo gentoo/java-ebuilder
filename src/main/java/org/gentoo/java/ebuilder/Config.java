@@ -52,7 +52,7 @@ public class Config {
     /**
      * Path to tarball root.
      */
-    private Path tarballRoot = Paths.get(".");
+    private Path tarballRoot;
 
     /**
      * Creates new instance of Config.
