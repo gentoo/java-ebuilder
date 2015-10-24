@@ -1,5 +1,7 @@
 package org.gentoo.java.ebuilder.maven;
 
+import java.nio.file.Path;
+
 /**
  * Contains information about maven project collected from pom.xml-
  *
@@ -12,7 +14,7 @@ public class MavenProject {
      *
      * @param ebuildPath path where to create the ebuild
      */
-    public void generateEbuild(final String ebuildPath) {
+    public void generateEbuild(final Path ebuildPath) {
         // TODO
         throw new UnsupportedOperationException("Not implemented yet");
     }

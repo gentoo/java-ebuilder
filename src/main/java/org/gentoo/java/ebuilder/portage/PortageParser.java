@@ -1,4 +1,6 @@
-package org.gentoo.java.ebuilder;
+package org.gentoo.java.ebuilder.portage;
+
+import java.nio.file.Path;
 
 /**
  * Parses portage tree and collects information needed for generating ebuilds.
@@ -13,7 +15,7 @@ public class PortageParser {
      *
      * @param treePath path to portage tree
      */
-    public void parseTree(final String treePath) {
+    public void parseTree(final Path treePath) {
         // TODO
         throw new UnsupportedOperationException("Not implemented yet");
     }

@@ -1,5 +1,7 @@
 package org.gentoo.java.ebuilder.maven;
 
+import java.nio.file.Path;
+
 /**
  * Parser for parsing pom.xml into project collector class.
  *
@@ -14,7 +16,7 @@ public class MavenParser {
      *
      * @return
      */
-    public MavenProject parsePom(final String pomPath) {
+    public MavenProject parsePom(final Path pomPath) {
         // TODO
         throw new UnsupportedOperationException("Not implemented yet");
     }
