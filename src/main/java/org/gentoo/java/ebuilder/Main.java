@@ -8,6 +8,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import org.gentoo.java.ebuilder.maven.MavenCache;
+import org.gentoo.java.ebuilder.maven.MavenEbuilder;
 import org.gentoo.java.ebuilder.maven.MavenParser;
 import org.gentoo.java.ebuilder.maven.MavenProject;
 import org.gentoo.java.ebuilder.portage.PortageParser;
@@ -135,11 +136,13 @@ public class Main {
      */
     private static void generateEbuild(final Config config) {
         final MavenParser mavenParser = new MavenParser();
-        final MavenProject mavenProject = mavenParser.parsePom(
-                config.getTarballRoot().resolve(config.getPom()));
+        final MavenProject mavenProject = mavenParser.parsePom(config);
+
         final MavenCache mavenCache = new MavenCache();
         mavenCache.loadCache(config.getCacheFile());
-        mavenProject.generateEbuild(config.getEbuild());
+
+        final MavenEbuilder mavenEbuilder = new MavenEbuilder();
+        mavenEbuilder.generateEbuild(config, mavenProject);
     }
 
     /**

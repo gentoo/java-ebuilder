@@ -26,4 +26,6 @@
             </plugin>
         </plugins>
     </build>
+    <name>Gentoo Java ebuild Builder</name>
+    <description>Java team tool for semi-automatic creation of ebuilds from pom.xml.</description>
 </project>

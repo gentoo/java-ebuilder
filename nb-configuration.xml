@@ -11,6 +11,7 @@ Without this configuration present, some functionality in the IDE may be limited
         <word>ebuilds</word>
         <word>eclass</word>
         <word>maven</word>
+        <word>plugin</word>
         <word>usr</word>
         <word>xml</word>
     </spellchecker-wordlist>
