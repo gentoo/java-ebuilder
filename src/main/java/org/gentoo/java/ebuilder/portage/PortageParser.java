@@ -222,8 +222,18 @@ public class PortageParser {
                     replaceAll("\\$(\\{PV\\}|PV)", pv);
 
             final String[] parts = mavenId.split(":");
-            groupId = parts[0];
-            artifactId = parts[1];
+
+            if (parts[0].isEmpty()) {
+                groupId = pkg;
+            } else {
+                groupId = parts[0];
+            }
+
+            if (parts.length > 1) {
+                artifactId = parts[1];
+            } else {
+                artifactId = pkg;
+            }
 
             if (parts.length > 2) {
                 mavenVersion = parts[2];
