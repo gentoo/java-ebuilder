@@ -7,4 +7,4 @@ Usage: jar <args>
 --portage-tree|-t           path to portage tree that should be parsed when
                             refreshing cache (default is /usr/portage)
 --refresh-cache|-c          refreshes java ebuild cache
---tarball-root|-t <dir>     path to tarball root (default is current directory)
+--tarball-root|-r <dir>     path to tarball root (default is current directory)
