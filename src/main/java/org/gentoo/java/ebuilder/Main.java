@@ -86,25 +86,33 @@ public class Main {
                         + "directory " + config.getEbuild().getParent()
                         + " does not exist.");
                 Runtime.getRuntime().exit(1);
-            } else if (config.getTarballRoot() == null) {
+            } else if (config.getKeywords() == null) {
                 config.getErrorWriter().println(
-                        "ERROR: --tarball-root must be specified.");
+                        "ERROR: --keywords must be specified.");
                 Runtime.getRuntime().exit(1);
-            } else if (!config.getTarballRoot().toFile().exists()) {
-                config.getErrorWriter().println("ERROR: Tarball root "
-                        + config.getTarballRoot().toFile().getPath()
+            } else if (config.getWorkdir() == null) {
+                config.getErrorWriter().println(
+                        "ERROR: --workdir must be specified.");
+                Runtime.getRuntime().exit(1);
+            } else if (!config.getWorkdir().toFile().exists()) {
+                config.getErrorWriter().println("ERROR: Workdir "
+                        + config.getWorkdir().toFile().getPath()
                         + " does not exist.");
                 Runtime.getRuntime().exit(1);
             } else if (config.getPom() == null) {
                 config.getErrorWriter().println(
                         "ERROR: --pom must be specified.");
                 Runtime.getRuntime().exit(1);
-            } else if (!config.getTarballRoot().resolve(config.getPom()).
+            } else if (!config.getWorkdir().resolve(config.getPom()).
                     toFile().exists()) {
                 config.getErrorWriter().println("ERROR: POM file "
-                        + config.getTarballRoot().resolve(config.getPom())
+                        + config.getWorkdir().resolve(config.getPom())
                         + " does not exist.");
                 Runtime.getRuntime().exit(1);
+            }
+
+            if (config.getSlot() == null) {
+                config.setSlot("0");
             }
         } else if (config.getDownloadUri() != null) {
             config.getErrorWriter().println("WARNING: Download URI is used "
@@ -113,12 +121,21 @@ public class Main {
             config.getErrorWriter().println(
                     "WARNING: Ebuild is used only when "
                     + "generating ebuild.");
+        } else if (config.getKeywords() != null) {
+            config.getErrorWriter().println("WARNING: Keywords are used only "
+                    + "when generating ebuild.");
+        } else if (config.getLicense() != null) {
+            config.getErrorWriter().println("WARNING: License is used only "
+                    + "when generating ebuild.");
         } else if (config.getPom() != null) {
             config.getErrorWriter().println("WARNING: pom.xml is used only "
                     + "when generating ebuild.");
-        } else if (config.getTarballRoot() != null) {
-            config.getErrorWriter().println("WARNING: Tarball root is used "
-                    + "only when generating ebuild.");
+        } else if (config.getSlot() != null) {
+            config.getErrorWriter().println("WARNING: SLOT is used only when "
+                    + "generating ebuild.");
+        } else if (config.getWorkdir() != null) {
+            config.getErrorWriter().println("WARNING: Workdir is used only "
+                    + "when generating ebuild.");
         }
 
         if (!config.isRefreshCache()
@@ -142,7 +159,7 @@ public class Main {
         mavenCache.loadCache(config.getCacheFile());
 
         final MavenEbuilder mavenEbuilder = new MavenEbuilder();
-        mavenEbuilder.generateEbuild(config, mavenProject);
+        mavenEbuilder.generateEbuild(config, mavenProject, mavenCache);
     }
 
     /**
@@ -172,11 +189,22 @@ public class Main {
                 case "--ebuild":
                 case "-e":
                     i++;
-                    config.setEbuild(Paths.get(args[i]).toAbsolutePath());
+                    config.setEbuild(Paths.get(args[i]).toAbsolutePath().
+                            normalize());
                     break;
                 case "--generate-ebuild":
                 case "-g":
                     config.setGenerateEbuild(true);
+                    break;
+                case "--keywords":
+                case "-k":
+                    i++;
+                    config.setKeywords(args[i]);
+                    break;
+                case "--license":
+                case "-l":
+                    i++;
+                    config.setLicense(args[i]);
                     break;
                 case "--pom":
                 case "-p":
@@ -186,16 +214,23 @@ public class Main {
                 case "-portage-tree":
                 case "-t":
                     i++;
-                    config.setPortageTree(Paths.get(args[i]).toAbsolutePath());
+                    config.setPortageTree(Paths.get(args[i]).toAbsolutePath().
+                            normalize());
                     break;
                 case "--refresh-cache":
                 case "-c":
                     config.setRefreshCache(true);
                     break;
-                case "--tarball-root":
-                case "-r":
+                case "--slot":
+                case "-s":
                     i++;
-                    config.setTarballRoot(Paths.get(args[i]).toAbsolutePath());
+                    config.setSlot(args[i]);
+                    break;
+                case "--workdir":
+                case "-w":
+                    i++;
+                    config.setWorkdir(Paths.get(args[i]).toAbsolutePath().
+                            normalize());
                     break;
                 default:
                     config.getErrorWriter().println("ERROR: Switch '" + args[i]

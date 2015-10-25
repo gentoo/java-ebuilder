@@ -2,9 +2,12 @@ Usage: jar <args>
 --download-uri|-u <uri>     uri that goes to SRC_URI
 --ebuild|-e <file>          path to ebuild that should be created
 --generate-ebuild|-g        generates ebuild from pom.xml
+--keywords|-k <keywords>    arch keywords
+--license|-l <license>      license name
 --pom|-p <file>             path to pom.xml that should be parsed, the path must
-                            be relative to the tarball root
+                            be relative to workdir
 --portage-tree|-t           path to portage tree that should be parsed when
                             refreshing cache (default is /usr/portage)
 --refresh-cache|-c          refreshes java ebuild cache
---tarball-root|-r <dir>     path to tarball root (default is current directory)
+--slot|-s  <slot>           SLOT number
+--workdir|-w <dir>          path to workdir (default is current directory)

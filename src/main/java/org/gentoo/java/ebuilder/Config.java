@@ -34,6 +34,14 @@ public class Config {
      */
     private boolean generateEbuild;
     /**
+     * Arch keywords.
+     */
+    private String keywords;
+    /**
+     * License name.
+     */
+    private String license;
+    /**
      * Path to pom.xml file.
      */
     private Path pom;
@@ -46,13 +54,17 @@ public class Config {
      */
     private boolean refreshCache;
     /**
+     * SLOT number.
+     */
+    private String slot;
+    /**
      * Writer for standard output.
      */
     private final PrintWriter stdoutWriter;
     /**
-     * Path to tarball root.
+     * Path to workdir.
      */
-    private Path tarballRoot;
+    private Path workdir;
 
     /**
      * Creates new instance of Config.
@@ -121,6 +133,42 @@ public class Config {
     }
 
     /**
+     * Getter for {@link #keywords}.
+     *
+     * @return {@link #keywords}
+     */
+    public String getKeywords() {
+        return keywords;
+    }
+
+    /**
+     * Setter for {@link #keywords}.
+     *
+     * @param keywords {@link #keywords}
+     */
+    public void setKeywords(final String keywords) {
+        this.keywords = keywords;
+    }
+
+    /**
+     * Getter for {@link #license}.
+     *
+     * @return {@link #license}
+     */
+    public String getLicense() {
+        return license;
+    }
+
+    /**
+     * Setter for {@link #license}.
+     *
+     * @param license {@link #license}
+     */
+    public void setLicense(final String license) {
+        this.license = license;
+    }
+
+    /**
      * Getter for {@link #pom}.
      *
      * @return {@link #pom}
@@ -157,6 +205,24 @@ public class Config {
     }
 
     /**
+     * Getter for {@link #slot}.
+     *
+     * @return {@link #slot}
+     */
+    public String getSlot() {
+        return slot;
+    }
+
+    /**
+     * Setter for {@link #slot}.
+     *
+     * @param slot {@link #slot}
+     */
+    public void setSlot(String slot) {
+        this.slot = slot;
+    }
+
+    /**
      * Getter for {@link #stdoutWriter}.
      *
      * @return {@link #stdoutWriter}
@@ -166,21 +232,21 @@ public class Config {
     }
 
     /**
-     * Getter for {@link #tarballRoot}.
+     * Getter for {@link #workdir}.
      *
-     * @return {@link #tarballRoot}
+     * @return {@link #workdir}
      */
-    public Path getTarballRoot() {
-        return tarballRoot;
+    public Path getWorkdir() {
+        return workdir;
     }
 
     /**
-     * Setter for {@link #tarballRoot}.
+     * Setter for {@link #workdir}.
      *
-     * @param tarballRoot {@link #tarballRoot}
+     * @param workdir {@link #workdir}
      */
-    public void setTarballRoot(final Path tarballRoot) {
-        this.tarballRoot = tarballRoot;
+    public void setWorkdir(final Path workdir) {
+        this.workdir = workdir;
     }
 
     /**

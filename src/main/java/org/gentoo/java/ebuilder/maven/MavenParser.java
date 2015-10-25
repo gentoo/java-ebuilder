@@ -31,7 +31,15 @@ public class MavenParser {
     public MavenProject parsePom(final Config config) {
         final File effectivePom = getEffectivePom(config);
 
-        return parsePom(config, effectivePom);
+        final MavenProject mavenProject = parsePom(config, effectivePom);
+
+        if (mavenProject.hasTests()
+                && mavenProject.getTestDependencies().isEmpty()) {
+            mavenProject.addDependency(new MavenProject.Dependency(
+                    "junit", "junit", "4.11", "test"));
+        }
+
+        return mavenProject;
     }
 
     /**
@@ -40,7 +48,7 @@ public class MavenParser {
      * @param reader XML stream reader
      *
      * @throws XMLStreamException Thrown if problem occurred while parsing the
-     * element.
+     *                            element.
      */
     private void consumeElement(final XMLStreamReader reader)
             throws XMLStreamException {
@@ -78,7 +86,7 @@ public class MavenParser {
         final ProcessBuilder processBuilder = new ProcessBuilder("mvn", "-f",
                 config.getPom().toString(), "help:effective-pom",
                 "-Doutput=" + outputPath);
-        processBuilder.directory(config.getTarballRoot().toFile());
+        processBuilder.directory(config.getWorkdir().toFile());
 
         final Process process;
 
@@ -125,10 +133,10 @@ public class MavenParser {
      * Parses build plugin.
      *
      * @param mavenProject maven project instance
-     * @param reader XML stream reader
+     * @param reader       XML stream reader
      *
      * @throws XMLStreamException Thrown if problem occurred while reading XML
-     * stream.
+     *                            stream.
      */
     private void parseBuildPlugin(final MavenProject mavenProject,
             final XMLStreamReader reader) throws XMLStreamException {
@@ -159,11 +167,11 @@ public class MavenParser {
      * Parses build plugin configuration.
      *
      * @param mavenProject maven project instance
-     * @param reader XML stream reader
-     * @param artifactId plugin artifact id
+     * @param reader       XML stream reader
+     * @param artifactId   plugin artifact id
      *
      * @throws XMLStreamException Thrown if problem occurred while reading XML
-     * stream.
+     *                            stream.
      */
     private void parseBuildPluginConfiguration(final MavenProject mavenProject,
             final XMLStreamReader reader, final String artifactId)
@@ -213,10 +221,10 @@ public class MavenParser {
      * Parses archive element of build plugin configuration.
      *
      * @param mavenProject maven project instance
-     * @param reader XML stream reader
+     * @param reader       XML stream reader
      *
      * @throws XMLStreamException Thrown if problem occurred while reading XML
-     * stream.
+     *                            stream.
      */
     private void parseBuildPluginConfigurationArchive(
             final MavenProject mavenProject, final XMLStreamReader reader)
@@ -242,10 +250,10 @@ public class MavenParser {
      * Parses build plugins and its sub-elements.
      *
      * @param mavenProject maven project instance
-     * @param reader XML stream reader
+     * @param reader       XML stream reader
      *
      * @throws XMLStreamException Thrown if problem occurred while reading XML
-     * stream.
+     *                            stream.
      */
     private void parseBuildPlugins(final MavenProject mavenProject,
             final XMLStreamReader reader) throws XMLStreamException {
@@ -268,10 +276,10 @@ public class MavenParser {
      * Parses manifest elements.
      *
      * @param mavenProject maven project instance
-     * @param reader XML stream reader
+     * @param reader       XML stream reader
      *
      * @throws XMLStreamException Thrown if problem occurred while reading XML
-     * stream.
+     *                            stream.
      */
     private void parseManifest(final MavenProject mavenProject,
             final XMLStreamReader reader) throws XMLStreamException {
@@ -296,7 +304,7 @@ public class MavenParser {
      * Parses the pom file and returns maven project instance containing
      * collected information.
      *
-     * @param config application configuration
+     * @param config       application configuration
      * @param effectivePom path to effective pom
      *
      * @return maven project instance
@@ -344,10 +352,10 @@ public class MavenParser {
      * Parses project element and it's sub-elements.
      *
      * @param mavenProject maven project instance
-     * @param reader XML stream reader
+     * @param reader       XML stream reader
      *
      * @throws XMLStreamException Thrown if problem occurred while reading XML
-     * stream.
+     *                            stream.
      */
     private void parseProject(final MavenProject mavenProject,
             final XMLStreamReader reader) throws XMLStreamException {
@@ -378,7 +386,8 @@ public class MavenParser {
                         mavenProject.setHomepage(reader.getElementText());
                         break;
                     case "version":
-                        mavenProject.setVersion(reader.getElementText());
+                        mavenProject.setVersion(reader.getElementText().replace(
+                                "-SNAPSHOT", ""));
                         break;
                     default:
                         consumeElement(reader);
@@ -393,10 +402,10 @@ public class MavenParser {
      * Parses project build element and its sub-elements.
      *
      * @param mavenProject maven project instance
-     * @param reader XML stream reader
+     * @param reader       XML stream reader
      *
      * @throws XMLStreamException Thrown if problem occurred while reading XML
-     * stream.
+     *                            stream.
      */
     private void parseProjectBuild(final MavenProject mavenProject,
             final XMLStreamReader reader) throws XMLStreamException {
@@ -435,10 +444,10 @@ public class MavenParser {
      * Parses project dependencies and its sub-elements.
      *
      * @param mavenProject maven project instance
-     * @param reader XML stream reader
+     * @param reader       XML stream reader
      *
      * @throws XMLStreamException Thrown if problem occurred while reading XML
-     * stream.
+     *                            stream.
      */
     private void parseProjectDependencies(final MavenProject mavenProject,
             final XMLStreamReader reader) throws XMLStreamException {
@@ -463,10 +472,10 @@ public class MavenParser {
      * Parses project dependency.
      *
      * @param mavenProject maven project instance
-     * @param reader XML stream reader
+     * @param reader       XML stream reader
      *
      * @throws XMLStreamException Thrown if problem occurred while reading XML
-     * stream.
+     *                            stream.
      */
     private void parseProjectDependency(final MavenProject mavenProject,
             final XMLStreamReader reader) throws XMLStreamException {
@@ -490,12 +499,13 @@ public class MavenParser {
                         scope = reader.getElementText();
                         break;
                     case "version":
-                        version = reader.getElementText();
+                        version = reader.getElementText().replace("-SNAPSHOT",
+                                "");
                         break;
                     default:
                         consumeElement(reader);
                 }
-            } else {
+            } else if (reader.isEndElement()) {
                 mavenProject.addDependency(new MavenProject.Dependency(groupId,
                         artifactId, version, scope));
 
@@ -508,10 +518,10 @@ public class MavenParser {
      * Parses project properties.
      *
      * @param mavenProject maven project instance
-     * @param reader XML stream reader
+     * @param reader       XML stream reader
      *
      * @throws XMLStreamException Thrown if problem occurred while reading the
-     * XML stream.
+     *                            XML stream.
      */
     private void parseProjectProperties(final MavenProject mavenProject,
             final XMLStreamReader reader) throws XMLStreamException {
@@ -542,10 +552,10 @@ public class MavenParser {
      * Parses resource element.
      *
      * @param mavenProject maven project instance
-     * @param reader XML stream reader
+     * @param reader       XML stream reader
      *
      * @throws XMLStreamException Thrown if problem occurred while reading XML
-     * stream.
+     *                            stream.
      */
     private void parseResource(final MavenProject mavenProject,
             final XMLStreamReader reader) throws XMLStreamException {
@@ -571,10 +581,10 @@ public class MavenParser {
      * Parses resources and its sub-elements.
      *
      * @param mavenProject maven project instance
-     * @param reader XML stream reader
+     * @param reader       XML stream reader
      *
      * @throws XMLStreamException Thrown if problem occurred while reading XML
-     * stream.
+     *                            stream.
      */
     private void parseResources(final MavenProject mavenProject,
             final XMLStreamReader reader) throws XMLStreamException {
@@ -599,10 +609,10 @@ public class MavenParser {
      * Parses test resource.
      *
      * @param mavenProject maven project instance
-     * @param reader XML stream reader
+     * @param reader       XML stream reader
      *
      * @throws XMLStreamException Thrown if problem occurred while reading XML
-     * stream.
+     *                            stream.
      */
     private void parseTestResource(final MavenProject mavenProject,
             final XMLStreamReader reader) throws XMLStreamException {
@@ -628,10 +638,10 @@ public class MavenParser {
      * Parses test resources and its sub-elements.
      *
      * @param mavenProject maven project instance
-     * @param reader XML stream reader
+     * @param reader       XML stream reader
      *
      * @throws XMLStreamException Thrown if problem occurred while reading XML
-     * stream.
+     *                            stream.
      */
     private void parseTestResources(final MavenProject mavenProject,
             final XMLStreamReader reader) throws XMLStreamException {

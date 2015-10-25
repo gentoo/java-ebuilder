@@ -29,6 +29,18 @@ public class MavenProject {
      */
     private String groupId;
     /**
+     * Whether the package has resources.
+     */
+    private Boolean hasResources;
+    /**
+     * Whether the package has test resources.
+     */
+    private Boolean hasTestResources;
+    /**
+     * Whether the package has test classes.
+     */
+    private Boolean hasTests;
+    /**
      * Homepage URL.
      */
     private String homepage;
@@ -115,6 +127,25 @@ public class MavenProject {
     }
 
     /**
+     * Returns list of dependencies that are used both for compilation and
+     * runtime.
+     *
+     * @return list of dependencies
+     */
+    public List<Dependency> getCommonDependencies() {
+        return getDependencies(new String[]{"compile"});
+    }
+
+    /**
+     * Returns list of dependencies that are needed only for compilation.
+     *
+     * @return list of dependencies
+     */
+    public List<Dependency> getCompileDependencies() {
+        return getDependencies(new String[]{"provided", "system"});
+    }
+
+    /**
      * Getter for {@link #dependencies}. The list is read-only.
      *
      * @return {@link #dependencies}
@@ -160,6 +191,19 @@ public class MavenProject {
     }
 
     /**
+     * Gets higher version of {@link #sourceVersion} and {@link #targetVersion}.
+     *
+     * @return version string
+     */
+    public String getHigherVersion() {
+        if (sourceVersion.compareTo(targetVersion) == -1) {
+            return targetVersion;
+        } else {
+            return sourceVersion;
+        }
+    }
+
+    /**
      * Getter for {@link #homepage}.
      *
      * @return {@link #homepage}
@@ -202,6 +246,15 @@ public class MavenProject {
      */
     public List<Path> getResourceDirectories() {
         return Collections.unmodifiableList(resourceDirectories);
+    }
+
+    /**
+     * Returns list of dependencies that are needed only for runtime.
+     *
+     * @return list of dependencies
+     */
+    public List<Dependency> getRuntimeDependencies() {
+        return getDependencies(new String[]{"runtime"});
     }
 
     /**
@@ -277,6 +330,21 @@ public class MavenProject {
     }
 
     /**
+     * Returns list of dependencies that are needed only for tests compilation
+     * and runtime.
+     *
+     * @return list of dependencies
+     */
+    @SuppressWarnings("unchecked")
+    public List<Dependency> getTestDependencies() {
+        if (!hasTests()) {
+            return Collections.EMPTY_LIST;
+        }
+
+        return getDependencies(new String[]{"test"});
+    }
+
+    /**
      * Getter for {@link #testResourceDirectories}. The list is read-only.
      *
      * @return {@link #testResourceDirectories}
@@ -319,6 +387,96 @@ public class MavenProject {
      */
     public void setVersion(final String version) {
         this.version = version;
+    }
+
+    /**
+     * Getter for {@link #hasResources}.
+     *
+     * @return {@link #hasResources}
+     */
+    public boolean hasResources() {
+        if (hasResources == null) {
+            hasResources = false;
+
+            for (final Path resources : resourceDirectories) {
+                if (resources.toFile().exists()
+                        && resources.toFile().list().length != 0) {
+                    hasResources = true;
+
+                    break;
+                }
+            }
+        }
+
+        return hasResources;
+    }
+
+    /**
+     * Getter for {@link #hasTestResources}.
+     *
+     * @return {@link #hasTestResources}
+     */
+    public boolean hasTestResources() {
+        if (hasTestResources == null) {
+            hasTestResources = false;
+
+            for (final Path resources : testResourceDirectories) {
+                if (resources.toFile().exists()
+                        && resources.toFile().list().length != 0) {
+                    hasTestResources = true;
+
+                    break;
+                }
+            }
+        }
+
+        return hasTestResources;
+    }
+
+    /**
+     * Getter for {@link #hasTests}.
+     *
+     * @return {@link #hasTests}
+     */
+    public boolean hasTests() {
+        if (hasTests == null) {
+            hasTests = testSourceDirectory != null
+                    && testSourceDirectory.toFile().exists()
+                    && testSourceDirectory.toFile().list().length != 0;
+        }
+
+        return hasTests;
+    }
+
+    /**
+     * Returns dependencies based on the specified scopes.
+     *
+     * @param scopes array of scopes
+     *
+     * @return list of dependencies
+     */
+    private List<Dependency> getDependencies(final String[] scopes) {
+        final List<Dependency> result = new ArrayList<>(dependencies.size());
+
+        for (final Dependency dependency : dependencies) {
+            for (final String scope : scopes) {
+                if (dependency.getScope().equals(scope)) {
+                    result.add(dependency);
+
+                    break;
+                }
+            }
+        }
+
+        result.sort((final Dependency o1, final Dependency o2) -> {
+            if (!o1.getGroupId().equals(o2.getGroupId())) {
+                return o1.getGroupId().compareTo(o2.getGroupId());
+            } else {
+                return o1.getArtifactId().compareTo(o2.getArtifactId());
+            }
+        });
+
+        return result;
     }
 
     /**
