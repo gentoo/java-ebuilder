@@ -373,7 +373,7 @@ public class MavenEbuilder {
      */
     private void writeInherit(final PrintWriter writer) {
         writer.println();
-        writer.println("inherit eutils java-pkg-simple");
+        writer.println("inherit java-pkg-2 java-pkg-simple");
     }
 
     /**
