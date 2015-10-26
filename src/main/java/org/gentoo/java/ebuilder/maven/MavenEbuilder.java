@@ -94,6 +94,39 @@ public class MavenEbuilder {
     }
 
     /**
+     * Determines the testing framework.
+     *
+     * @param testDepenencies    list of test dependencies
+     * @param commonDependencies list of common dependencies
+     *
+     * @return testing framework name or null
+     */
+    private String determineTestingFramework(
+            final List<ResolvedDependency> testDepenencies,
+            final List<ResolvedDependency> commonDependencies) {
+        final List<ResolvedDependency> dependencies = new ArrayList<>(
+                testDepenencies.size() + commonDependencies.size());
+        dependencies.addAll(testDepenencies);
+        dependencies.addAll(commonDependencies);
+
+        for (final ResolvedDependency dependency : dependencies) {
+            final MavenProject.Dependency mavenDependency
+                    = dependency.getMavenDependency();
+
+            if (mavenDependency.getGroupId() == null) {
+                continue;
+            }
+
+            if ("junit".equals(mavenDependency.getGroupId())
+                    && "junit".equals(mavenDependency.getArtifactId())) {
+                return "junit";
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Attempts to resolve dependencies using the specified cache.
      *
      * @param dependencies list of maven dependencies
@@ -487,6 +520,15 @@ public class MavenEbuilder {
         if (!testDependencies.isEmpty()) {
             writer.print("JAVA_GENTOO_TEST_CLASSPATH=\"");
             writer.print(createClassPath(testDependencies));
+            writer.println('"');
+        }
+
+        final String testingFramework = determineTestingFramework(
+                testDependencies, commonDependencies);
+
+        if (testingFramework != null) {
+            writer.print("JAVA_TESTING_FRAMEWORK=\"");
+            writer.print(testingFramework);
             writer.println('"');
         }
 
