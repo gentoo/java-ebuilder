@@ -156,7 +156,7 @@ public class Main {
         final MavenProject mavenProject = mavenParser.parsePom(config);
 
         final MavenCache mavenCache = new MavenCache();
-        mavenCache.loadCache(config.getCacheFile());
+        mavenCache.loadCache(config);
 
         final MavenEbuilder mavenEbuilder = new MavenEbuilder();
         mavenEbuilder.generateEbuild(config, mavenProject, mavenCache);
