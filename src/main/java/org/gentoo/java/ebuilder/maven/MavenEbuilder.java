@@ -269,7 +269,7 @@ public class MavenEbuilder {
 
         writer.println();
         writer.print("\t>=virtual/jdk-");
-        writer.print(mavenProject.getHigherVersion());
+        writer.print(mavenProject.getSourceVersion());
 
         if (!compileDependencies.isEmpty()) {
             compileDependencies.stream().
@@ -299,7 +299,7 @@ public class MavenEbuilder {
 
         writer.println();
         writer.print("\t>=virtual/jre-");
-        writer.print(mavenProject.getHigherVersion());
+        writer.print(mavenProject.getTargetVersion());
 
         if (!runtimeDependencies.isEmpty()) {
             runtimeDependencies.stream().
@@ -459,16 +459,6 @@ public class MavenEbuilder {
             final List<ResolvedDependency> runtimeDependencies,
             final PrintWriter writer) {
         writer.println();
-
-        if (!mavenProject.getSourceVersion().equals(mavenProject.
-                getTargetVersion())) {
-            writer.print("JAVA_SOURCE_VERSION=\"");
-            writer.print(mavenProject.getSourceVersion());
-            writer.println('"');
-            writer.print("JAVA_TARGET_VERSION=\"");
-            writer.print(mavenProject.getTargetVersion());
-            writer.println('"');
-        }
 
         if (!commonDependencies.isEmpty() || !runtimeDependencies.isEmpty()) {
             final List<ResolvedDependency> dependencies

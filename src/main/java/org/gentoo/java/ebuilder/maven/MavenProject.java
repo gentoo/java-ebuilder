@@ -191,19 +191,6 @@ public class MavenProject {
     }
 
     /**
-     * Gets higher version of {@link #sourceVersion} and {@link #targetVersion}.
-     *
-     * @return version string
-     */
-    public String getHigherVersion() {
-        if (sourceVersion.compareTo(targetVersion) == -1) {
-            return targetVersion;
-        } else {
-            return sourceVersion;
-        }
-    }
-
-    /**
      * Getter for {@link #homepage}.
      *
      * @return {@link #homepage}
