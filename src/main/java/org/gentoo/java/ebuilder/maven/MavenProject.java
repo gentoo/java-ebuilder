@@ -4,6 +4,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.gentoo.java.ebuilder.portage.MavenVersion;
 
 /**
  * Contains information about maven project collected from pom.xml.
@@ -481,6 +482,10 @@ public class MavenProject {
          */
         private final String groupId;
         /**
+         * Parsed maven version.
+         */
+        private final MavenVersion mavenVersion;
+        /**
          * Dependency scope.
          */
         private final String scope;
@@ -503,6 +508,8 @@ public class MavenProject {
             this.artifactId = artifactId;
             this.version = version;
             this.scope = scope;
+
+            mavenVersion = new MavenVersion(version);
         }
 
         /**
@@ -521,6 +528,15 @@ public class MavenProject {
          */
         public String getGroupId() {
             return groupId;
+        }
+
+        /**
+         * Getter for {@link #mavenVersion}.
+         *
+         * @return {@link #mavenVersion}
+         */
+        public MavenVersion getMavenVersion() {
+            return mavenVersion;
         }
 
         /**
