@@ -55,7 +55,7 @@ public class MavenEbuilder {
                     = resolveDependencies(mavenProject.getRuntimeDependencies(),
                             mavenCache);
 
-            writeDependencies(mavenProject, commonDependencies,
+            writeDependencies(config, mavenProject, commonDependencies,
                     testDependencies, compileDependencies, runtimeDependencies,
                     writer);
             writeSourceDir(writer);
@@ -189,6 +189,7 @@ public class MavenEbuilder {
     /**
      * Writes dependencies to the ebuild.
      *
+     * @param config              application configuration
      * @param mavenProject        maven project instance
      * @param commonDependencies  common dependencies
      * @param testDependencies    test dependencies
@@ -196,7 +197,8 @@ public class MavenEbuilder {
      * @param runtimeDependencies runtime dependencies
      * @param writer              ebuild writer
      */
-    private void writeDependencies(final MavenProject mavenProject,
+    private void writeDependencies(final Config config,
+            final MavenProject mavenProject,
             final List<ResolvedDependency> commonDependencies,
             final List<ResolvedDependency> testDependencies,
             final List<ResolvedDependency> compileDependencies,
@@ -270,6 +272,12 @@ public class MavenEbuilder {
         writer.println();
         writer.print("\t>=virtual/jdk-");
         writer.print(mavenProject.getSourceVersion());
+
+        if (config.getDownloadUri() != null && config.getDownloadUri().
+                toString().matches(".*\\.(jar|zip)$")) {
+            writer.println();
+            writer.print("\tapp-arch/unzip");
+        }
 
         if (!compileDependencies.isEmpty()) {
             compileDependencies.stream().
