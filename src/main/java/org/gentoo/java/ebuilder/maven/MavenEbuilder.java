@@ -274,7 +274,7 @@ public class MavenEbuilder {
         writer.print(mavenProject.getSourceVersion());
 
         if (config.getDownloadUri() != null && config.getDownloadUri().
-                toString().matches(".*\\.(jar|zip)$")) {
+                toString().matches("^.*?\\.(jar|zip)$")) {
             writer.println();
             writer.print("\tapp-arch/unzip");
         }
