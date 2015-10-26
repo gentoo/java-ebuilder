@@ -11,7 +11,11 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.gentoo.java.ebuilder.Config;
 
 /**
@@ -41,6 +45,24 @@ public class PortageParser {
      * Current java utilities eclass name.
      */
     private static final String ECLASS_JAVA_UTILS = "java-utils-2";
+    /**
+     * Pattern for parsing SLOT with bash substring.
+     */
+    private static final Pattern PATTERN_SLOT_SUBSTRING = Pattern.compile(
+            "^\\$\\{PV:(\\d+):(\\d+)\\}$");
+    /**
+     * Pattern for parsing version component range in SLOT.
+     */
+    private static final Pattern PATTERN_SLOT_VERSION_COMPOPONENT_RANGE
+            = Pattern.compile(
+                    "^\\$\\(get_version_component_range (\\d+)-(\\d+)\\)$");
+    /**
+     * Pattern for checking whether the line contains variable declaration. It
+     * does not handle correctly variables spread across several lines but we
+     * most probably do not care about these.
+     */
+    private static final Pattern PATTERN_VARIABLE = Pattern.compile(
+            "^(\\S+?)=(.*)$");
     /**
      * List of cache items. This list is populated during parsing the tree.
      */
@@ -149,6 +171,7 @@ public class PortageParser {
         final String category = ebuild.getParentFile().getParentFile().getName();
         final String pkg = ebuild.getParentFile().getName();
         final String version = filename.substring(pkg.length() + 1);
+        final Map<String, String> variables = new HashMap<>(20);
         String eclass = null;
         String slot = "0";
         String useFlag = null;
@@ -174,6 +197,13 @@ public class PortageParser {
                 }
 
                 if (!line.isEmpty()) {
+                    final Matcher matcher = PATTERN_VARIABLE.matcher(line);
+
+                    if (matcher.matches()) {
+                        variables.put(matcher.group(1), matcher.group(2).
+                                replaceAll("(^\"|\"$)", ""));
+                    }
+
                     if (line.startsWith("inherit ")) {
                         eclass = getJavaInheritEclass(line);
 
@@ -215,7 +245,7 @@ public class PortageParser {
             pv = version.substring(0, pos);
         }
 
-        slot = slot.replaceAll("\\$(\\{PV\\}|PV)", pv);
+        slot = processSlot(slot, pv, variables);
 
         if (mavenId != null) {
             mavenId = mavenId.replaceAll("\\$(\\{PN\\}|PN)", pkg).
@@ -260,6 +290,64 @@ public class PortageParser {
             parseEbuild(ebuild);
             processedEbuilds++;
         }
+    }
+
+    /**
+     * Processes various instructions in SLOT string.
+     *
+     * @param slot      SLOT string
+     * @param pv        PV variable
+     * @param variables map of collected variables and their values
+     *
+     * @return processed SLOT string
+     */
+    private String processSlot(final String slot, final String pv,
+            final Map<String, String> variables) {
+        String result = slot.replaceAll("\\$(\\{PV\\}|PV)", pv);
+
+        if (result.indexOf('$') != -1) {
+            for (final Map.Entry<String, String> variable
+                    : variables.entrySet()) {
+                result = result.
+                        replace("$" + variable.getKey(), variable.getValue()).
+                        replace("${" + variable.getKey() + '}',
+                                variable.getValue());
+            }
+        }
+
+        if (result.indexOf('$') != -1) {
+            final Matcher matcher = PATTERN_SLOT_SUBSTRING.matcher(result);
+
+            if (matcher.matches()) {
+                final int start = Integer.parseInt(matcher.group(1), 10);
+                final int length = Integer.parseInt(matcher.group(2), 10);
+                result = pv.substring(start, start + length);
+            }
+        }
+
+        if (result.indexOf('$') != -1) {
+            final Matcher matcher = PATTERN_SLOT_VERSION_COMPOPONENT_RANGE.
+                    matcher(result);
+
+            if (matcher.matches()) {
+                final int start = Integer.parseInt(matcher.group(1), 10);
+                final int end = Integer.parseInt(matcher.group(2), 10);
+                final String[] parts = pv.split("\\.");
+                final StringBuilder sbResult = new StringBuilder(10);
+
+                for (int i = start; i <= end; i++) {
+                    if (sbResult.length() > 0) {
+                        sbResult.append('.');
+                    }
+
+                    sbResult.append(i <= parts.length ? parts[i - 1] : '0');
+                }
+
+                result = sbResult.toString();
+            }
+        }
+
+        return result;
     }
 
     /**
