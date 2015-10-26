@@ -12,8 +12,6 @@ import org.gentoo.java.ebuilder.Config;
 /**
  * Generates ebuild from maven project.
  *
- * TODO: add support for OSGi.
- *
  * @author fordfrog
  */
 public class MavenEbuilder {
