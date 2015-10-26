@@ -14,7 +14,7 @@ public class MavenVersion implements Comparable<MavenVersion> {
      * Pattern for parsing maven version number.
      */
     private static final Pattern PATTERN_VERSION = Pattern.compile(
-            "^(\\d+)(?:\\.(\\d+)(?:\\.(\\d+)))(?:-(.*))$");
+            "^(\\d+)(?:\\.(\\d+))?(?:\\.(\\d+))?(?:-(.*))?$");
     /**
      * Incremental version number.
      */
