@@ -1,12 +1,15 @@
 package org.gentoo.java.ebuilder;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import org.gentoo.java.ebuilder.maven.MavenCache;
 import org.gentoo.java.ebuilder.maven.MavenEbuilder;
 import org.gentoo.java.ebuilder.maven.MavenParser;
@@ -99,17 +102,22 @@ public class Main {
                         + config.getWorkdir().toFile().getPath()
                         + " does not exist.");
                 Runtime.getRuntime().exit(1);
-            } else if (config.getPom() == null) {
+            } else if (config.getPomFiles().isEmpty()) {
                 config.getErrorWriter().println(
-                        "ERROR: --pom must be specified.");
-                Runtime.getRuntime().exit(1);
-            } else if (!config.getWorkdir().resolve(config.getPom()).
-                    toFile().exists()) {
-                config.getErrorWriter().println("ERROR: POM file "
-                        + config.getWorkdir().resolve(config.getPom())
-                        + " does not exist.");
+                        "ERROR: --pom must be specified at least once.");
                 Runtime.getRuntime().exit(1);
             }
+
+            config.getPomFiles().stream().forEach((pomFile) -> {
+                final File fullPath
+                        = config.getWorkdir().resolve(pomFile).toFile();
+
+                if (!fullPath.exists()) {
+                    config.getErrorWriter().println("ERROR: POM file "
+                            + fullPath + " does not exist.");
+                    Runtime.getRuntime().exit(1);
+                }
+            });
 
             if (config.getSlot() == null) {
                 config.setSlot("0");
@@ -127,7 +135,7 @@ public class Main {
         } else if (config.getLicense() != null) {
             config.getErrorWriter().println("WARNING: License is used only "
                     + "when generating ebuild.");
-        } else if (config.getPom() != null) {
+        } else if (!config.getPomFiles().isEmpty()) {
             config.getErrorWriter().println("WARNING: pom.xml is used only "
                     + "when generating ebuild.");
         } else if (config.getSlot() != null) {
@@ -152,14 +160,15 @@ public class Main {
      * @param config application configuration
      */
     private static void generateEbuild(final Config config) {
-        final MavenParser mavenParser = new MavenParser();
-        final MavenProject mavenProject = mavenParser.parsePom(config);
-
         final MavenCache mavenCache = new MavenCache();
         mavenCache.loadCache(config);
 
+        final MavenParser mavenParser = new MavenParser();
+        final List<MavenProject> mavenProjects
+                = mavenParser.parsePomFiles(config, mavenCache);
+
         final MavenEbuilder mavenEbuilder = new MavenEbuilder();
-        mavenEbuilder.generateEbuild(config, mavenProject, mavenCache);
+        mavenEbuilder.generateEbuild(config, mavenProjects, mavenCache);
     }
 
     /**
@@ -209,7 +218,7 @@ public class Main {
                 case "--pom":
                 case "-p":
                     i++;
-                    config.setPom(Paths.get(args[i]));
+                    config.addPomFile(Paths.get(args[i]));
                     break;
                 case "-portage-tree":
                 case "-t":

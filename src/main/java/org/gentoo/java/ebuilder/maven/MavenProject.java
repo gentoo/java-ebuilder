@@ -4,7 +4,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import org.gentoo.java.ebuilder.portage.MavenVersion;
 
 /**
  * Contains information about maven project collected from pom.xml.
@@ -20,7 +19,7 @@ public class MavenProject {
     /**
      * List of project dependencies.
      */
-    private final List<Dependency> dependencies = new ArrayList<>(10);
+    private final List<MavenDependency> dependencies = new ArrayList<>(10);
     /**
      * Project description.
      */
@@ -49,6 +48,10 @@ public class MavenProject {
      * Application main class.
      */
     private String mainClass;
+    /**
+     * Path to pom.xml file.
+     */
+    private final Path pomFile;
     /**
      * List of resource directories.
      */
@@ -83,11 +86,20 @@ public class MavenProject {
     private String version;
 
     /**
+     * Creates new instance of MavenProject.
+     *
+     * @param pomFile {@link #pomFile}
+     */
+    public MavenProject(final Path pomFile) {
+        this.pomFile = pomFile;
+    }
+
+    /**
      * Adds dependency to {@link #dependencies}.
      *
      * @param dependency {@link #dependencies}
      */
-    public void addDependency(final Dependency dependency) {
+    public void addDependency(final MavenDependency dependency) {
         dependencies.add(dependency);
     }
 
@@ -133,7 +145,7 @@ public class MavenProject {
      *
      * @return list of dependencies
      */
-    public List<Dependency> getCommonDependencies() {
+    public List<MavenDependency> getCommonDependencies() {
         return getDependencies(new String[]{"compile"});
     }
 
@@ -142,7 +154,7 @@ public class MavenProject {
      *
      * @return list of dependencies
      */
-    public List<Dependency> getCompileDependencies() {
+    public List<MavenDependency> getCompileDependencies() {
         return getDependencies(new String[]{"provided", "system"});
     }
 
@@ -151,7 +163,7 @@ public class MavenProject {
      *
      * @return {@link #dependencies}
      */
-    public List<Dependency> getDependencies() {
+    public List<MavenDependency> getDependencies() {
         return Collections.unmodifiableList(dependencies);
     }
 
@@ -228,6 +240,15 @@ public class MavenProject {
     }
 
     /**
+     * Getter for {@link #pomFile}.
+     *
+     * @return {@link #pomFile}
+     */
+    public Path getPomFile() {
+        return pomFile;
+    }
+
+    /**
      * Getter for {@link #resourceDirectories}. The list is read-only.
      *
      * @return {@link #resourceDirectories}
@@ -241,7 +262,7 @@ public class MavenProject {
      *
      * @return list of dependencies
      */
-    public List<Dependency> getRuntimeDependencies() {
+    public List<MavenDependency> getRuntimeDependencies() {
         return getDependencies(new String[]{"runtime"});
     }
 
@@ -324,7 +345,7 @@ public class MavenProject {
      * @return list of dependencies
      */
     @SuppressWarnings("unchecked")
-    public List<Dependency> getTestDependencies() {
+    public List<MavenDependency> getTestDependencies() {
         if (!hasTests()) {
             return Collections.EMPTY_LIST;
         }
@@ -443,10 +464,11 @@ public class MavenProject {
      *
      * @return list of dependencies
      */
-    private List<Dependency> getDependencies(final String[] scopes) {
-        final List<Dependency> result = new ArrayList<>(dependencies.size());
+    private List<MavenDependency> getDependencies(final String[] scopes) {
+        final List<MavenDependency> result
+                = new ArrayList<>(dependencies.size());
 
-        for (final Dependency dependency : dependencies) {
+        for (final MavenDependency dependency : dependencies) {
             for (final String scope : scopes) {
                 if (dependency.getScope().equals(scope)) {
                     result.add(dependency);
@@ -456,7 +478,7 @@ public class MavenProject {
             }
         }
 
-        result.sort((final Dependency o1, final Dependency o2) -> {
+        result.sort((final MavenDependency o1, final MavenDependency o2) -> {
             if (!o1.getGroupId().equals(o2.getGroupId())) {
                 return o1.getGroupId().compareTo(o2.getGroupId());
             } else {
@@ -465,96 +487,5 @@ public class MavenProject {
         });
 
         return result;
-    }
-
-    /**
-     * Maven project dependency.
-     */
-    @SuppressWarnings("PublicInnerClass")
-    public static class Dependency {
-
-        /**
-         * Artifact id.
-         */
-        private final String artifactId;
-        /**
-         * Group id.
-         */
-        private final String groupId;
-        /**
-         * Parsed maven version.
-         */
-        private final MavenVersion mavenVersion;
-        /**
-         * Dependency scope.
-         */
-        private final String scope;
-        /**
-         * Version.
-         */
-        private final String version;
-
-        /**
-         * Creates new instance of Dependency.
-         *
-         * @param groupId    {@link #groupId}.
-         * @param artifactId {@link #artifactId}
-         * @param version    {@link #version}
-         * @param scope      {@link #scope}
-         */
-        public Dependency(final String groupId, final String artifactId,
-                final String version, final String scope) {
-            this.groupId = groupId;
-            this.artifactId = artifactId;
-            this.version = version;
-            this.scope = scope;
-
-            mavenVersion = new MavenVersion(version);
-        }
-
-        /**
-         * Getter for {@link #artifactId}.
-         *
-         * @return {@link #artifactId}
-         */
-        public String getArtifactId() {
-            return artifactId;
-        }
-
-        /**
-         * Getter for {@link #groupId}.
-         *
-         * @return {@link #groupId}
-         */
-        public String getGroupId() {
-            return groupId;
-        }
-
-        /**
-         * Getter for {@link #mavenVersion}.
-         *
-         * @return {@link #mavenVersion}
-         */
-        public MavenVersion getMavenVersion() {
-            return mavenVersion;
-        }
-
-        /**
-         * Getter for {@link #scope}.
-         *
-         * @return {@link #scope}
-         */
-        public String getScope() {
-            return scope;
-        }
-
-        /**
-         * Getter for {@link #version}.
-         *
-         * @return {@link #version}
-         */
-        public String getVersion() {
-            return version;
-        }
     }
 }

@@ -4,6 +4,9 @@ import java.io.PrintWriter;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Container for command line configuration.
@@ -42,9 +45,9 @@ public class Config {
      */
     private String license;
     /**
-     * Path to pom.xml file.
+     * List of paths to pom.xml files.
      */
-    private Path pom;
+    private final List<Path> pomFiles = new ArrayList<>(10);
     /**
      * Path to portage tree.
      */
@@ -76,6 +79,15 @@ public class Config {
             final PrintWriter errorWriter) {
         this.stdoutWriter = stdoutWriter;
         this.errorWriter = errorWriter;
+    }
+
+    /**
+     * Adds pom file to {@link #pomFiles}.
+     *
+     * @param pomFile path to pom file
+     */
+    public void addPomFile(final Path pomFile) {
+        pomFiles.add(pomFile);
     }
 
     /**
@@ -169,21 +181,12 @@ public class Config {
     }
 
     /**
-     * Getter for {@link #pom}.
+     * Getter for {@link #pomFiles}.
      *
-     * @return {@link #pom}
+     * @return {@link #pomFiles}
      */
-    public Path getPom() {
-        return pom;
-    }
-
-    /**
-     * Setter for {@link #pom}.
-     *
-     * @param pom {@link #pom}
-     */
-    public void setPom(final Path pom) {
-        this.pom = pom;
+    public List<Path> getPomFiles() {
+        return Collections.unmodifiableList(pomFiles);
     }
 
     /**

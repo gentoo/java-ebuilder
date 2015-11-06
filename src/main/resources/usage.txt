@@ -5,7 +5,8 @@ Usage: jar <args>
 --keywords|-k <keywords>    arch keywords
 --license|-l <license>      license name
 --pom|-p <file>             path to pom.xml that should be parsed, the path must
-                            be relative to workdir
+                            be relative to workdir (can be specified multiple
+                            times)
 --portage-tree|-t           path to portage tree that should be parsed when
                             refreshing cache (default is /usr/portage)
 --refresh-cache|-c          refreshes java ebuild cache

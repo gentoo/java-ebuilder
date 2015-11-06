@@ -6,7 +6,10 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.stream.XMLInputFactory;
@@ -22,24 +25,33 @@ import org.gentoo.java.ebuilder.Config;
 public class MavenParser {
 
     /**
-     * Parses specified pom.xml.
+     * Parses specified pom.xml files.
      *
-     * @param config application configuration
+     * @param config     application configuration
+     * @param mavenCache maven cache
      *
-     * @return
+     * @return list of maven projects
      */
-    public MavenProject parsePom(final Config config) {
-        final File effectivePom = getEffectivePom(config);
+    public List<MavenProject> parsePomFiles(final Config config,
+            final MavenCache mavenCache) {
+        final List<MavenProject> result
+                = new ArrayList<>(config.getPomFiles().size());
 
-        final MavenProject mavenProject = parsePom(config, effectivePom);
+        config.getPomFiles().stream().forEach((pomFile) -> {
+            final File effectivePom = getEffectivePom(config, pomFile);
 
-        if (mavenProject.hasTests()
-                && mavenProject.getTestDependencies().isEmpty()) {
-            mavenProject.addDependency(new MavenProject.Dependency(
-                    "junit", "junit", "4.11", "test"));
-        }
+            final MavenProject mavenProject = parsePom(config, mavenCache,
+                    pomFile, effectivePom);
 
-        return mavenProject;
+            if (mavenProject.hasTests()
+                    && mavenProject.getTestDependencies().isEmpty()) {
+                mavenProject.addDependency(new MavenDependency(
+                        "junit", "junit", "4.11", "test",
+                        mavenCache.getDependency("junit", "junit", "4.11")));
+            }
+        });
+
+        return result;
     }
 
     /**
@@ -66,11 +78,12 @@ public class MavenParser {
     /**
      * Stores effective pom to file and returns the file.
      *
-     * @param config application configuration
+     * @param config  application configuration
+     * @param pomFile path to pom.xml file that should be processed
      *
      * @return path to effective pom
      */
-    private File getEffectivePom(final Config config) {
+    private File getEffectivePom(final Config config, final Path pomFile) {
         final File outputPath;
 
         try {
@@ -81,10 +94,10 @@ public class MavenParser {
         }
 
         config.getStdoutWriter().print("Retrieving effective pom for "
-                + config.getPom() + " into " + outputPath + "...");
+                + pomFile + " into " + outputPath + "...");
 
         final ProcessBuilder processBuilder = new ProcessBuilder("mvn", "-f",
-                config.getPom().toString(), "help:effective-pom",
+                pomFile.toString(), "help:effective-pom",
                 "-Doutput=" + outputPath);
         processBuilder.directory(config.getWorkdir().toFile());
 
@@ -305,11 +318,14 @@ public class MavenParser {
      * collected information.
      *
      * @param config       application configuration
+     * @param mavenCache   maven cache
+     * @param pomFile      path to pom.xml file
      * @param effectivePom path to effective pom
      *
      * @return maven project instance
      */
     private MavenProject parsePom(final Config config,
+            final MavenCache mavenCache, final Path pomFile,
             final File effectivePom) {
         config.getStdoutWriter().print("Parsing effective pom...");
 
@@ -323,7 +339,7 @@ public class MavenParser {
             throw new RuntimeException("Failed to read effective pom", ex);
         }
 
-        final MavenProject mavenProject = new MavenProject();
+        final MavenProject mavenProject = new MavenProject(pomFile);
 
         try {
             while (reader.hasNext()) {
@@ -332,7 +348,7 @@ public class MavenParser {
                 if (reader.isStartElement()) {
                     switch (reader.getLocalName()) {
                         case "project":
-                            parseProject(mavenProject, reader);
+                            parseProject(mavenProject, mavenCache, reader);
                             break;
                         default:
                             consumeElement(reader);
@@ -358,7 +374,8 @@ public class MavenParser {
      *                            stream.
      */
     private void parseProject(final MavenProject mavenProject,
-            final XMLStreamReader reader) throws XMLStreamException {
+            final MavenCache mavenCache, final XMLStreamReader reader)
+            throws XMLStreamException {
         while (reader.hasNext()) {
             reader.next();
 
@@ -371,7 +388,8 @@ public class MavenParser {
                         parseProjectBuild(mavenProject, reader);
                         break;
                     case "dependencies":
-                        parseProjectDependencies(mavenProject, reader);
+                        parseProjectDependencies(mavenProject, mavenCache,
+                                reader);
                         break;
                     case "description":
                         mavenProject.setDescription(reader.getElementText());
@@ -444,20 +462,22 @@ public class MavenParser {
      * Parses project dependencies and its sub-elements.
      *
      * @param mavenProject maven project instance
+     * @param mavenCache   maven cache
      * @param reader       XML stream reader
      *
      * @throws XMLStreamException Thrown if problem occurred while reading XML
      *                            stream.
      */
     private void parseProjectDependencies(final MavenProject mavenProject,
-            final XMLStreamReader reader) throws XMLStreamException {
+            final MavenCache mavenCache, final XMLStreamReader reader)
+            throws XMLStreamException {
         while (reader.hasNext()) {
             reader.next();
 
             if (reader.isStartElement()) {
                 switch (reader.getLocalName()) {
                     case "dependency":
-                        parseProjectDependency(mavenProject, reader);
+                        parseProjectDependency(mavenProject, mavenCache, reader);
                         break;
                     default:
                         consumeElement(reader);
@@ -472,13 +492,15 @@ public class MavenParser {
      * Parses project dependency.
      *
      * @param mavenProject maven project instance
+     * @param mavenCache   maven cache
      * @param reader       XML stream reader
      *
      * @throws XMLStreamException Thrown if problem occurred while reading XML
      *                            stream.
      */
     private void parseProjectDependency(final MavenProject mavenProject,
-            final XMLStreamReader reader) throws XMLStreamException {
+            final MavenCache mavenCache, final XMLStreamReader reader)
+            throws XMLStreamException {
         String groupId = null;
         String artifactId = null;
         String version = null;
@@ -506,8 +528,9 @@ public class MavenParser {
                         consumeElement(reader);
                 }
             } else if (reader.isEndElement()) {
-                mavenProject.addDependency(new MavenProject.Dependency(groupId,
-                        artifactId, version, scope));
+                mavenProject.addDependency(new MavenDependency(groupId,
+                        artifactId, version, scope, mavenCache.getDependency(
+                                groupId, artifactId, version)));
 
                 return;
             }

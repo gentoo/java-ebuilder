@@ -24,11 +24,12 @@ public class MavenEbuilder {
     /**
      * Generates ebuild from the collected information at the specified path.
      *
-     * @param config       application configuration
-     * @param mavenProject maven project information
-     * @param mavenCache   populated maven cache
+     * @param config        application configuration
+     * @param mavenProjects list of maven project information
+     * @param mavenCache    populated maven cache
      */
-    public void generateEbuild(final Config config, MavenProject mavenProject,
+    public void generateEbuild(final Config config,
+            final List<MavenProject> mavenProjects,
             final MavenCache mavenCache) {
         config.getStdoutWriter().print("Writing ebuild...");
 
@@ -38,28 +39,14 @@ public class MavenEbuilder {
             writeCommand(config, writer);
             writeEAPI(writer);
             writeInherit(writer);
-            writePackageInfo(config, mavenProject, writer);
+            // write the info from the last project as it is probably the one
+            // that depends on the rest
+            writePackageInfo(config,
+                    mavenProjects.get(mavenProjects.size() - 1), writer);
 
-            final List<ResolvedDependency> commonDependencies
-                    = resolveDependencies(mavenProject.getCommonDependencies(),
-                            mavenCache);
-            final List<ResolvedDependency> testDependencies
-                    = resolveDependencies(mavenProject.getTestDependencies(),
-                            mavenCache);
-            final List<ResolvedDependency> compileDependencies
-                    = resolveDependencies(mavenProject.getCompileDependencies(),
-                            mavenCache);
-            final List<ResolvedDependency> runtimeDependencies
-                    = resolveDependencies(mavenProject.getRuntimeDependencies(),
-                            mavenCache);
-
-            writeDependencies(config, mavenProject, commonDependencies,
-                    testDependencies, compileDependencies, runtimeDependencies,
-                    writer);
+            writeDependencies(config, mavenProjects, writer);
             writeSourceDir(writer);
-            writeScript(config, mavenProject, commonDependencies,
-                    testDependencies, compileDependencies, runtimeDependencies,
-                    writer);
+            writeScript(config, mavenProjects, writer);
         } catch (final IOException ex) {
             throw new RuntimeException("Failed to write ebuild", ex);
         }
@@ -74,12 +61,13 @@ public class MavenEbuilder {
      *
      * @return classpath
      */
-    private String createClassPath(final List<ResolvedDependency> dependencies) {
+    private String createClassPath(
+            final List<MavenDependency> dependencies) {
         final StringBuilder sbCP = new StringBuilder(dependencies.size() * 15);
 
-        dependencies.stream().filter((final ResolvedDependency dependency)
+        dependencies.stream().filter((dependency)
                 -> dependency.getSystemDependency() != null).
-                forEach((final ResolvedDependency dependency) -> {
+                forEach((dependency) -> {
                     if (sbCP.length() > 0) {
                         sbCP.append(',');
                     }
@@ -94,31 +82,45 @@ public class MavenEbuilder {
     }
 
     /**
-     * Determines the testing framework.
+     * Determines the testing framework based on project dependencies.
      *
-     * @param testDepenencies    list of test dependencies
-     * @param commonDependencies list of common dependencies
+     * @param mavenProjects list of maven projects
      *
      * @return testing framework name or null
      */
     private String determineTestingFramework(
-            final List<ResolvedDependency> testDepenencies,
-            final List<ResolvedDependency> commonDependencies) {
-        final List<ResolvedDependency> dependencies = new ArrayList<>(
-                testDepenencies.size() + commonDependencies.size());
-        dependencies.addAll(testDepenencies);
-        dependencies.addAll(commonDependencies);
+            final List<MavenProject> mavenProjects) {
+        for (final MavenProject mavenProject : mavenProjects) {
+            final String result = determineTestingFramework(mavenProject);
 
-        for (final ResolvedDependency dependency : dependencies) {
-            final MavenProject.Dependency mavenDependency
-                    = dependency.getMavenDependency();
-
-            if (mavenDependency.getGroupId() == null) {
-                continue;
+            if (result != null) {
+                return result;
             }
+        }
 
-            if ("junit".equals(mavenDependency.getGroupId())
-                    && "junit".equals(mavenDependency.getArtifactId())) {
+        return null;
+    }
+
+    /**
+     * Determines the testing framework based on project dependencies.
+     *
+     * @param mavenProject maven project
+     *
+     * @return testing framework name or null
+     */
+    private String determineTestingFramework(final MavenProject mavenProject) {
+        for (final MavenDependency dependency : mavenProject.
+                getTestDependencies()) {
+            if ("junit".equals(dependency.getGroupId())
+                    && "junit".equals(dependency.getArtifactId())) {
+                return "junit";
+            }
+        }
+
+        for (final MavenDependency dependency : mavenProject.
+                getCommonDependencies()) {
+            if ("junit".equals(dependency.getGroupId())
+                    && "junit".equals(dependency.getArtifactId())) {
                 return "junit";
             }
         }
@@ -127,49 +129,93 @@ public class MavenEbuilder {
     }
 
     /**
-     * Attempts to resolve dependencies using the specified cache.
+     * Retrieves minimum source version from the maven projects.
      *
-     * @param dependencies list of maven dependencies
-     * @param mavenCache   maven cache
+     * @param mavenProjects list of maven projects
      *
-     * @return list of resolved dependencies (system dependency can be null)
+     * @return minimum source version
      */
-    private List<ResolvedDependency> resolveDependencies(
-            final List<MavenProject.Dependency> dependencies,
-            final MavenCache mavenCache) {
-        final List<ResolvedDependency> result
-                = new ArrayList<>(dependencies.size());
+    private String getMinSourceVersion(final List<MavenProject> mavenProjects) {
+        String result = null;
 
-        dependencies.stream().forEach((dependency) -> {
-            result.add(new ResolvedDependency(dependency,
-                    mavenCache.getDependency(dependency.getGroupId(),
-                            dependency.getArtifactId(),
-                            dependency.getVersion())));
-        });
+        for (final MavenProject mavenProject : mavenProjects) {
+            if (result == null || mavenProject.getSourceVersion().compareTo(
+                    result) < 0) {
+                result = mavenProject.getSourceVersion();
+            }
+        }
 
         return result;
     }
 
     /**
-     * Sorts dependencies using system dependency.
+     * Retrieves minimum target version from the maven projects.
      *
-     * @param dependencies list of dependencies
+     * @param mavenProjects list of maven projects
+     *
+     * @return minimum target version
      */
-    private void sortDependencies(final List<ResolvedDependency> dependencies) {
-        dependencies.sort((final ResolvedDependency o1,
-                final ResolvedDependency o2) -> {
-            if (o1.getSystemDependency() == null
-                    && o2.getSystemDependency() == null) {
-                return 0;
-            } else if (o1.getSystemDependency() == null) {
-                return 1;
-            } else if (o2.getSystemDependency() == null) {
-                return -1;
-            } else {
-                return o1.getSystemDependency().compareTo(
-                        o2.getSystemDependency());
+    private String getMinTargetVersion(final List<MavenProject> mavenProjects) {
+        String result = null;
+
+        for (final MavenProject mavenProject : mavenProjects) {
+            if (result == null || mavenProject.getTargetVersion().compareTo(
+                    result) < 0) {
+                result = mavenProject.getTargetVersion();
             }
+        }
+
+        return result;
+    }
+
+    /**
+     * Merges maven project system dependencies of specified type and removed
+     * duplicates.
+     *
+     * @param mavenProjects list of maven projects
+     * @param type          type of dependencies ("common", "compile", "runtime"
+     *                      and "test")
+     *
+     * @return list of merged dependencies
+     */
+    private List<String> mergeSystemDependencies(
+            final List<MavenProject> mavenProjects, final String type) {
+        final List<String> result = new ArrayList<>(30);
+
+        mavenProjects.stream().forEach((mavenProject) -> {
+            final List<MavenDependency> dependencies;
+
+            switch (type) {
+                case "common":
+                    dependencies = mavenProject.getCommonDependencies();
+                    break;
+                case "compile":
+                    dependencies = mavenProject.getCompileDependencies();
+                    break;
+                case "runtime":
+                    dependencies = mavenProject.getRuntimeDependencies();
+                    break;
+                case "test":
+                    dependencies = mavenProject.getTestDependencies();
+                    break;
+                default:
+                    throw new RuntimeException(
+                            "Dependencies type not supported: " + type);
+            }
+
+            dependencies.stream().filter((dependency)
+                    -> (dependency.getSystemDependency() != null
+                    && !result.contains(dependency.getSystemDependency()))).
+                    forEach((dependency) -> {
+                        result.add(dependency.getSystemDependency());
+                    });
         });
+
+        result.sort((final String o1, final String o2) -> {
+            return o1.compareTo(o2);
+        });
+
+        return result;
     }
 
     /**
@@ -183,9 +229,11 @@ public class MavenEbuilder {
         writer.println("# Skeleton command:");
         writer.print("# java-ebuilder --generate-ebuild --workdir .");
 
-        if (config.getPom() != null) {
-            writer.print(" --pom ");
-            writer.print(config.getPom());
+        if (!config.getPomFiles().isEmpty()) {
+            config.getPomFiles().stream().forEach((pomFile) -> {
+                writer.print(" --pom ");
+                writer.print(pomFile);
+            });
         }
 
         if (config.getDownloadUri() != null) {
@@ -220,65 +268,67 @@ public class MavenEbuilder {
     /**
      * Writes dependencies to the ebuild.
      *
-     * @param config              application configuration
-     * @param mavenProject        maven project instance
-     * @param commonDependencies  common dependencies
-     * @param testDependencies    test dependencies
-     * @param compileDependencies compile dependencies
-     * @param runtimeDependencies runtime dependencies
-     * @param writer              ebuild writer
+     * @param config        application configuration
+     * @param mavenProjects list of maven projects
+     * @param writer        ebuild writer
      */
     private void writeDependencies(final Config config,
-            final MavenProject mavenProject,
-            final List<ResolvedDependency> commonDependencies,
-            final List<ResolvedDependency> testDependencies,
-            final List<ResolvedDependency> compileDependencies,
-            final List<ResolvedDependency> runtimeDependencies,
+            final List<MavenProject> mavenProjects,
             final PrintWriter writer) {
-        boolean hasCDepend = false;
+        final List<String> commonDependencies = mergeSystemDependencies(
+                mavenProjects, "common");
+        final List<String> testDependencies = mergeSystemDependencies(
+                mavenProjects, "test");
+        final List<String> compileDependencies = mergeSystemDependencies(
+                mavenProjects, "compile");
+        final List<String> runtimeDependencies = mergeSystemDependencies(
+                mavenProjects, "runtime");
+        boolean hasCDepend = !commonDependencies.isEmpty()
+                || !testDependencies.isEmpty();
 
-        if (!commonDependencies.isEmpty() || !testDependencies.isEmpty()) {
-            hasCDepend = true;
-
+        if (hasCDepend) {
             writer.println();
             writer.println("# Common dependencies");
 
-            if (!commonDependencies.isEmpty()) {
-                writeDependenciesInfo(writer, commonDependencies, null);
-            }
+            for (final MavenProject mavenProject : mavenProjects) {
+                if (mavenProject.getCommonDependencies().isEmpty()
+                        && mavenProject.getTestDependencies().isEmpty()) {
+                    continue;
+                }
 
-            if (!testDependencies.isEmpty()) {
-                writeDependenciesInfo(writer, testDependencies, "test?");
+                if (!mavenProject.getCommonDependencies().isEmpty()) {
+                    writeDependenciesInfo(writer, mavenProject.getPomFile(),
+                            mavenProject.getCommonDependencies(), null);
+                }
+
+                if (!mavenProject.getTargetVersion().isEmpty()) {
+                    writeDependenciesInfo(writer, mavenProject.getPomFile(),
+                            mavenProject.getTestDependencies(), "test?");
+                }
+
+                hasCDepend = true;
             }
 
             writer.print("CDEPEND=\"");
 
             if (!commonDependencies.isEmpty()) {
-                sortDependencies(commonDependencies);
-
                 commonDependencies.stream().
-                        filter((final ResolvedDependency dependency)
-                                -> dependency.getSystemDependency() != null).
-                        forEach((final ResolvedDependency dependency) -> {
+                        forEach((dependency) -> {
                             writer.println();
                             writer.print('\t');
-                            writer.print(dependency.getSystemDependency());
+                            writer.print(dependency);
                         });
             }
 
             if (!testDependencies.isEmpty()) {
-                sortDependencies(testDependencies);
-
                 writer.println();
                 writer.println("\ttest? (");
 
                 testDependencies.stream().
-                        filter((final ResolvedDependency dependency)
-                                -> dependency.getSystemDependency() != null).
-                        forEach((final ResolvedDependency dependency) -> {
+                        forEach((dependency) -> {
                             writer.println();
                             writer.print("\t\t");
-                            writer.print(dependency.getSystemDependency());
+                            writer.print(dependency);
                         });
 
                 writer.print("\t)");
@@ -289,7 +339,13 @@ public class MavenEbuilder {
 
         if (!compileDependencies.isEmpty()) {
             writer.println("# Compile dependencies");
-            writeDependenciesInfo(writer, compileDependencies, null);
+
+            mavenProjects.stream().filter((mavenProject) -> (!mavenProject.
+                    getCompileDependencies().isEmpty()))
+                    .forEach((mavenProject) -> {
+                        writeDependenciesInfo(writer, mavenProject.getPomFile(),
+                                mavenProject.getCompileDependencies(), null);
+                    });
         } else {
             writer.println();
         }
@@ -302,7 +358,7 @@ public class MavenEbuilder {
 
         writer.println();
         writer.print("\t>=virtual/jdk-");
-        writer.print(mavenProject.getSourceVersion());
+        writer.print(getMinSourceVersion(mavenProjects));
 
         if (config.getDownloadUri() != null && config.getDownloadUri().
                 toString().matches("^.*?\\.(jar|zip)$")) {
@@ -312,12 +368,10 @@ public class MavenEbuilder {
 
         if (!compileDependencies.isEmpty()) {
             compileDependencies.stream().
-                    filter((final ResolvedDependency dependency)
-                            -> dependency.getSystemDependency() != null).
-                    forEach((final ResolvedDependency dependency) -> {
+                    forEach((dependency) -> {
                         writer.println();
                         writer.print('\t');
-                        writer.print(dependency.getSystemDependency());
+                        writer.print(dependency);
                     });
         }
 
@@ -325,7 +379,13 @@ public class MavenEbuilder {
 
         if (!runtimeDependencies.isEmpty()) {
             writer.println("# Runtime dependencies");
-            writeDependenciesInfo(writer, runtimeDependencies, null);
+
+            mavenProjects.stream().filter((mavenProject) -> (!mavenProject.
+                    getRuntimeDependencies().isEmpty()))
+                    .forEach((mavenProject) -> {
+                        writeDependenciesInfo(writer, mavenProject.getPomFile(),
+                                mavenProject.getRuntimeDependencies(), null);
+                    });
         } else {
             writer.println();
         }
@@ -338,16 +398,14 @@ public class MavenEbuilder {
 
         writer.println();
         writer.print("\t>=virtual/jre-");
-        writer.print(mavenProject.getTargetVersion());
+        writer.print(getMinTargetVersion(mavenProjects));
 
         if (!runtimeDependencies.isEmpty()) {
             runtimeDependencies.stream().
-                    filter((final ResolvedDependency dependency)
-                            -> dependency.getSystemDependency() != null).
-                    forEach((final ResolvedDependency dependency) -> {
+                    forEach((dependency) -> {
                         writer.println();
                         writer.print('\t');
-                        writer.print(dependency.getSystemDependency());
+                        writer.print(dependency);
                     });
         }
 
@@ -358,12 +416,17 @@ public class MavenEbuilder {
      * Writes dependencies information to the ebuild.
      *
      * @param writer       ebuild writer
+     * @param pomFile      path to pom file
      * @param dependencies list of dependencies
      * @param useFlag      optional USE flag including question mark
      */
     private void writeDependenciesInfo(final PrintWriter writer,
-            final List<ResolvedDependency> dependencies, final String useFlag) {
-        dependencies.stream().forEach((ResolvedDependency dependency) -> {
+            final Path pomFile, final List<MavenDependency> dependencies,
+            final String useFlag) {
+        writer.print("# POM: ");
+        writer.println(pomFile);
+
+        dependencies.stream().forEach((dependency) -> {
             writer.print("# ");
 
             if (useFlag != null) {
@@ -371,11 +434,11 @@ public class MavenEbuilder {
                 writer.print(' ');
             }
 
-            writer.print(dependency.getMavenDependency().getGroupId());
+            writer.print(dependency.getGroupId());
             writer.print(':');
-            writer.print(dependency.getMavenDependency().getArtifactId());
+            writer.print(dependency.getArtifactId());
             writer.print(':');
-            writer.print(dependency.getMavenDependency().getVersion());
+            writer.print(dependency.getVersion());
             writer.print(" -> ");
             writer.println(dependency.getSystemDependency());
         });
@@ -413,6 +476,19 @@ public class MavenEbuilder {
     private void writeInherit(final PrintWriter writer) {
         writer.println();
         writer.println("inherit java-pkg-2 java-pkg-simple");
+    }
+
+    /**
+     * Writes ebuild script for multiple projects.
+     *
+     * @param config        application configuration
+     * @param mavenProjects list of maven projects
+     * @param writer        ebuild writer
+     */
+    private void writeMultipleProjectsScript(final Config config,
+            final List<MavenProject> mavenProjects, final PrintWriter writer) {
+        // TODO: implement multiple-project script
+        throw new UnsupportedOperationException("Not implemented yet.");
     }
 
     /**
@@ -482,49 +558,58 @@ public class MavenEbuilder {
     /**
      * Writes ebuild script.
      *
-     * @param config              application configuration
-     * @param mavenProject        maven project instance
-     * @param commonDependencies  common dependencies
-     * @param testDependencies    test dependencies
-     * @param compileDependencies compile dependencies
-     * @param runtimeDependencies runtime dependencies
-     * @param writer              ebuild writer
+     * @param config        application configuration
+     * @param mavenProjects list of maven projects
+     * @param writer        ebuild writer
      */
     private void writeScript(final Config config,
-            final MavenProject mavenProject,
-            final List<ResolvedDependency> commonDependencies,
-            final List<ResolvedDependency> testDependencies,
-            final List<ResolvedDependency> compileDependencies,
-            final List<ResolvedDependency> runtimeDependencies,
+            final List<MavenProject> mavenProjects,
             final PrintWriter writer) {
+        if (mavenProjects.size() == 1) {
+            writeSingleProjectScript(config, mavenProjects.get(0), writer);
+        } else {
+            writeMultipleProjectsScript(config, mavenProjects, writer);
+        }
+    }
+
+    /**
+     * Writes ebuild script for single project.
+     *
+     * @param config       application configuration
+     * @param mavenProject maven project
+     * @param writer       ebuild writer
+     */
+    private void writeSingleProjectScript(final Config config,
+            final MavenProject mavenProject, final PrintWriter writer) {
         writer.println();
 
-        if (!commonDependencies.isEmpty() || !runtimeDependencies.isEmpty()) {
-            final List<ResolvedDependency> dependencies
-                    = new ArrayList<>(commonDependencies.size()
-                            + runtimeDependencies.size());
-            dependencies.addAll(commonDependencies);
-            dependencies.addAll(runtimeDependencies);
+        if (!mavenProject.getCommonDependencies().isEmpty()
+                || !mavenProject.getRuntimeDependencies().isEmpty()) {
+            final List<MavenDependency> dependencies
+                    = new ArrayList<>(
+                            mavenProject.getCommonDependencies().size()
+                            + mavenProject.getRuntimeDependencies().size());
+            dependencies.addAll(mavenProject.getCommonDependencies());
+            dependencies.addAll(mavenProject.getRuntimeDependencies());
 
             writer.print("JAVA_GENTOO_CLASSPATH=\"");
             writer.print(createClassPath(dependencies));
             writer.println('"');
         }
 
-        if (!compileDependencies.isEmpty()) {
+        if (!mavenProject.getCompileDependencies().isEmpty()) {
             writer.print("JAVA_CLASSPATH_EXTRA=\"");
-            writer.print(createClassPath(compileDependencies));
+            writer.print(createClassPath(mavenProject.getCompileDependencies()));
             writer.println('"');
         }
 
-        if (!testDependencies.isEmpty()) {
+        if (!mavenProject.getTestDependencies().isEmpty()) {
             writer.print("JAVA_GENTOO_TEST_CLASSPATH=\"");
-            writer.print(createClassPath(testDependencies));
+            writer.print(createClassPath(mavenProject.getTestDependencies()));
             writer.println('"');
         }
 
-        final String testingFramework = determineTestingFramework(
-                testDependencies, commonDependencies);
+        final String testingFramework = determineTestingFramework(mavenProject);
 
         if (testingFramework != null) {
             writer.print("JAVA_TESTING_FRAMEWORK=\"");
@@ -602,50 +687,5 @@ public class MavenEbuilder {
     private void writeSourceDir(final PrintWriter writer) {
         writer.println();
         writer.println("S=\"${WORKDIR}\"");
-    }
-
-    /**
-     * Container for resolved dependency information.
-     */
-    private static class ResolvedDependency {
-
-        /**
-         * Maven dependency.
-         */
-        private final MavenProject.Dependency mavenDependency;
-        /**
-         * System dependency.
-         */
-        private final String systemDependency;
-
-        /**
-         * Creates new instance of ResolvedDependency.
-         *
-         * @param mavenDependency  {@link #mavenDependency}
-         * @param systemDependency {@link #systemDependency}
-         */
-        ResolvedDependency(final MavenProject.Dependency mavenDependency,
-                final String systemDependency) {
-            this.mavenDependency = mavenDependency;
-            this.systemDependency = systemDependency;
-        }
-
-        /**
-         * Getter for {@link #mavenDependency}.
-         *
-         * @return {@link #mavenDependency}
-         */
-        public MavenProject.Dependency getMavenDependency() {
-            return mavenDependency;
-        }
-
-        /**
-         * Getter for {@link #systemDependency}.
-         *
-         * @return {@link #systemDependency}
-         */
-        public String getSystemDependency() {
-            return systemDependency;
-        }
     }
 }
