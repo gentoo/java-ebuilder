@@ -489,6 +489,22 @@ public class MavenEbuilder {
             final List<MavenProject> mavenProjects, final PrintWriter writer) {
         // TODO: implement multiple-project script
         throw new UnsupportedOperationException("Not implemented yet.");
+
+        // Global:
+        // JAVA_GENTOO_CLASSPATH
+        // JAVA_CLASSPATH_EXTRA
+        // JAVA_GENTOO_TEST_CLASSPATH
+        // JAVA_ENCODING (unless it differs in projects)
+        // Compile (jars, doc):
+        // JAVA_SRC_DIR
+        // JAVA_RESOURCE_DIRS
+        // JAVA_ENCODING (in case project encodings are different)
+        // Test:
+        // JAVA_TESTING_FRAMEWORK
+        // JAVA_TEST_SRC_DIR
+        // JAVA_TEST_RESOURCE_DIRS
+        // Install (jars, doc, sources):
+        // JAVA_MAIN_CLASS
     }
 
     /**
