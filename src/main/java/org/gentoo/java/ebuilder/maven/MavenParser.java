@@ -49,6 +49,8 @@ public class MavenParser {
                         "junit", "junit", "4.11", "test",
                         mavenCache.getDependency("junit", "junit", "4.11")));
             }
+
+	    result.add(mavenProject);
         });
 
         return result;
@@ -347,6 +349,9 @@ public class MavenParser {
 
                 if (reader.isStartElement()) {
                     switch (reader.getLocalName()) {
+                        case "projects":
+                            /* no-op */
+                            break;
                         case "project":
                             parseProject(mavenProject, mavenCache, reader);
                             break;
