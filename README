@@ -1,0 +1,14 @@
+Java team tool for semi-automatic creation of ebuilds from pom.xml.
+
+Use example:
+
+# Generate cache of java related packages from portage tree.
+java-ebuilder --refresh-cache -t /usr/portage
+
+# Find corresponding maven groupId, artifactId and version in the cache.
+( echo 1.0; tail -n +2 $HOME/.java-ebuilder/cache | parallel -j -2 scripts/meta.sh; ) > cache
+cp cache $HOME/.java-ebuilder/cache
+
+# Create ebuild.
+java-ebuilder -p pom.xml -e xxx.ebuild -g -u http://xxx.tg.gz --keywords amd64 --workdir .
+
