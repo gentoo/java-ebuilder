@@ -43,13 +43,13 @@ public class MavenCache {
         final Map<String, List<CacheItem>> artifactIds = cache.get(groupId);
 
         if (artifactIds == null) {
-            return null;
+            return "!!!groupId-not-found!!!";
         }
 
         final List<CacheItem> versions = artifactIds.get(artifactId);
 
         if (versions == null) {
-            return null;
+            return "!!!artifactId-not-found!!!";
         }
 
         final MavenVersion mavenVersion = new MavenVersion(version);
