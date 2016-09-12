@@ -301,7 +301,7 @@ public class MavenEbuilder {
                             mavenProject.getCommonDependencies(), null);
                 }
 
-                if (!mavenProject.getTargetVersion().isEmpty()) {
+                if (mavenProject.getTargetVersion()!=null) {
                     writeDependenciesInfo(writer, mavenProject.getPomFile(),
                             mavenProject.getTestDependencies(), "test?");
                 }
