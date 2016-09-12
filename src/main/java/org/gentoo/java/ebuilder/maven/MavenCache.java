@@ -156,7 +156,7 @@ public class MavenCache {
 
         if (versions == null) {
             versions = new ArrayList<>(10);
-            artifactIds.put(cacheItem.getPkg(), versions);
+            artifactIds.put(cacheItem.getArtifactId(), versions);
         }
 
         versions.add(cacheItem);
