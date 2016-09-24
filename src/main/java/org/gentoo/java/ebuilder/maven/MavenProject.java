@@ -71,7 +71,7 @@ public class MavenProject {
     /**
      * Target compile version.
      */
-    private String targetVersion;
+    private String targetVersion = "1.7";
     /**
      * Test resource directories.
      */
