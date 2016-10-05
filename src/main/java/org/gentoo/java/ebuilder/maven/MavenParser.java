@@ -525,6 +525,11 @@ public class MavenParser {
                     case "version":
                         version = reader.getElementText().replace("-SNAPSHOT",
                                 "");
+			/* crazy version from
+			 * org.khronos:opengl-api:gl1.1-android-2.1_r1 */
+			if (version.equals("gl1.1-android-2.1_r1")) {
+			    version = "2.1.1";
+			}
                         break;
                     default:
                         consumeElement(reader);
