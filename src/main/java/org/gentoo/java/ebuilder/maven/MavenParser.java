@@ -112,10 +112,10 @@ public class MavenParser {
         }
 
         try {
-            process.waitFor(1, TimeUnit.MINUTES);
+            process.waitFor(10, TimeUnit.MINUTES);
         } catch (final InterruptedException ex) {
             config.getErrorWriter().println("ERROR: mvn process did not finish "
-                    + "within 1 minute, exiting.");
+                    + "within 10 minute, exiting.");
             Runtime.getRuntime().exit(1);
         }
 
