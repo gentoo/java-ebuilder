@@ -33,20 +33,24 @@ if ! ebuild ${ebd} unpack >/dev/null 2>&1; then
     exit 0
 fi
 
-loc=$(portageq envvar PORTAGE_TMPDIR)/portage/${pkg}/work
-
-fl=$(ls -1 ${loc}/*${edir}/pom.xml 2> /dev/null)
-if [[ -n ${fl} ]]; then
-    for f in ${fl}; do
-        ppom=$(xml2 < ${f} | egrep '(groupId|artifactId|version)=')
+bad_pom="yes"
+for subd in /dev/shm/portage/${pkg}/work/*; do
+    [[ -f ${subd}/pom.xml ]] || continue
+    bad_pom=""
+    pushd ${subd} > /dev/null
+    poms=$(mvn -q --also-make exec:exec -Dexec.executable="pwd" 2> /dev/null | grep ^/)
+    popd > /dev/null
+    for pd in ${poms}; do
+        ppom=$(xml2 < ${pd}/pom.xml | egrep '(groupId|artifactId|version)=')
         PG=$(echo "${ppom}" | sed -n -r -e 's,/project/groupId=(.*),\1,p')
         [[ -z ${PG} ]] && PG=$(echo "${ppom}" | sed -n -r -e 's,/project/parent/groupId=(.*),\1,p')
         PA=$(echo "${ppom}" | sed -n -r -e 's,/project/artifactId=(.*),\1,p')
         PV=$(echo "${ppom}" | sed -n -r -e 's,/project/version=(.*),\1,p')
         [[ -z ${PV} ]] && PV=$(echo "${ppom}" | sed -n -r -e 's,/project/parent/version=(.*),\1,p')
-        echo $1:${PG}:${PA}:${PV}
+        echo $1:${PG}:${PA}:${PV/-SNAPSHOT/}
     done
-else
+done
+if [[ -n "${bad_pom}" ]]; then
     echo $1:${pkg} >> bpom
 fi
 
