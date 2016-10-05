@@ -10,11 +10,55 @@ pkg=$(awk -F ":" '{print $1"/"$2"-"$3}' <<< $1)
 spkg=$(cut -d: -f2 <<< $1)
 sver=$(cut -d: -f3 <<< $1)
 case ${spkg} in
-    fontbox|slf4j*) edir=/${spkg} ;;
-    guava)
+    guava) 
         echo $1:com.google.guava:${spkg}:${sver%%-*}
         exit 0
         ;;
+    json)
+        echo $1:org.json:${spkg}:${sver%%-*}
+        exit 0
+        ;;
+    xerces)
+        echo $1:xerces:${spkg}:${sver%%-*}
+        echo $1:xerces:xercesImpl:${sver%%-*}
+        echo $1:xerces:xmlParserAPIs:${sver%%-*}
+        exit 0
+        ;;
+    commons-*|classworlds|jdom)
+        echo $1:${spkg}:${spkg}:${sver%%-*}
+        exit 0
+        ;;
+    velocity)
+        echo $1:org.apache.${spkg}:${spkg}:${sver%%-*}
+        exit 0
+        ;;
+    jtidy)
+        echo $1:net.sf.${spkg}:${spkg}:${sver%%-*}
+        exit 0
+        ;;
+    saxpath)
+        echo $1:${spkg}:${spkg}:${sver%%-*}-FCS # maven version
+        echo $1:org.jdom:${spkg}:${sver%%-*}-FCS
+        exit 0
+        ;;
+    ant*)
+        [[ ${spkg} = ant-core ]] && { spkg=ant; echo $1:ant:${spkg}:${sver%%-*}; }
+        [[ ${spkg} = ant-ivy ]] && spkg=ivy
+        echo $1:org.apache.ant:${spkg}:${sver%%-*}
+        exit 0
+        ;;
+    bcpg|bcprov)
+        echo $1:org.bouncycastle:${spkg}-jdk12:130
+        for jv in 1{4,5,6}; do
+            echo $1:org.bouncycastle:${spkg}-jdk${jv}:${sver%%-*}
+        done
+        exit 0
+        ;;
+    asm)
+        echo $1:org.ow2.asm:${spkg}:${sver%%-*}
+        echo $1:org.ow2.asm:${spkg}-all:${sver%%-*}
+        echo $1:org.ow2.asm:${spkg}-debug-all:${sver%%-*}
+        exit 0
 esac
 
 grep -q ${pkg} <bebd <bpom && exit 0
