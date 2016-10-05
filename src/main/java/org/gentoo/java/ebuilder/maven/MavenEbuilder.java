@@ -72,10 +72,18 @@ public class MavenEbuilder {
                         sbCP.append(',');
                     }
 
-                    sbCP.append(dependency.getSystemDependency().
-                            replaceAll(".*/", "").
-                            replaceAll("\\[.*\\]", "").
-                            replace(":", "-"));
+		    String[] parts = dependency.getSystemDependency().
+			replaceAll(".*/", "").
+			replaceAll("\\[.*\\]", "").
+			split(":");
+		    String PN = parts[0].replaceAll("-r\\d+$", "");
+		    if (parts.length == 2) {
+			PN = PN.substring(0, PN.lastIndexOf('-'));
+			if (!parts[1].equals("0")) {
+			    PN += "-" + parts[1];
+			}
+		    }
+                    sbCP.append(PN);
                 });
 
         return sbCP.toString();
