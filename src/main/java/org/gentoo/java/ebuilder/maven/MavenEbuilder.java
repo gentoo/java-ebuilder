@@ -38,11 +38,11 @@ public class MavenEbuilder {
             writeHeader(writer);
             writeCommand(config, writer);
             writeEAPI(writer);
-            writeInherit(writer);
+            MavenProject mp = mavenProjects.get(mavenProjects.size() - 1);
+            writeInherit(mp, writer);
             // write the info from the last project as it is probably the one
             // that depends on the rest
-            writePackageInfo(config,
-                    mavenProjects.get(mavenProjects.size() - 1), writer);
+            writePackageInfo(config, mp, writer);
 
             writeDependencies(config, mavenProjects, writer);
             writeSourceDir(writer);
@@ -481,7 +481,14 @@ public class MavenEbuilder {
      *
      * @param writer ebuild writer
      */
-    private void writeInherit(final PrintWriter writer) {
+    private void writeInherit(final MavenProject mavenProject,
+                              final PrintWriter writer) {
+        writer.println();
+        writer.print("IUSE=\"doc source");
+        if (mavenProject.hasTests()) {
+            writer.print(" test");
+        }
+        writer.println('"');
         writer.println();
         writer.println("inherit java-pkg-2 java-pkg-simple");
     }
@@ -562,11 +569,7 @@ public class MavenEbuilder {
         writer.print(config.getKeywords());
         writer.println('"');
 
-        writer.print("IUSE=\"doc source");
-
-        if (mavenProject.hasTests()) {
-            writer.print(" test");
-        }
+        writer.print("IUSE=\"");
 
         writer.println('"');
 
