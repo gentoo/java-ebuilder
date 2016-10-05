@@ -63,7 +63,7 @@ public class MavenProject {
     /**
      * Source encoding.
      */
-    private String sourceEncoding = "1.7";
+    private String sourceEncoding = "UTF-8";
     /**
      * Source compile version.
      */
