@@ -112,10 +112,10 @@ public class MavenParser {
         }
 
         try {
-            process.waitFor(1, TimeUnit.MINUTES);
+            process.waitFor(10, TimeUnit.MINUTES);
         } catch (final InterruptedException ex) {
             config.getErrorWriter().println("ERROR: mvn process did not finish "
-                    + "within 1 minute, exiting.");
+                    + "within 10 minute, exiting.");
             Runtime.getRuntime().exit(1);
         }
 
@@ -389,9 +389,6 @@ public class MavenParser {
                     case "artifactId":
                         mavenProject.setArtifactId(reader.getElementText());
                         break;
-                    case "build":
-                        parseProjectBuild(mavenProject, reader);
-                        break;
                     case "dependencies":
                         parseProjectDependencies(mavenProject, mavenCache,
                                 reader);
@@ -509,7 +506,7 @@ public class MavenParser {
         String groupId = null;
         String artifactId = null;
         String version = null;
-        String scope = null;
+        String scope = "compile";
 
         while (reader.hasNext()) {
             reader.next();
@@ -528,6 +525,11 @@ public class MavenParser {
                     case "version":
                         version = reader.getElementText().replace("-SNAPSHOT",
                                 "");
+			/* crazy version from
+			 * org.khronos:opengl-api:gl1.1-android-2.1_r1 */
+			if (version.equals("gl1.1-android-2.1_r1")) {
+			    version = "2.1.1";
+			}
                         break;
                     default:
                         consumeElement(reader);

@@ -63,7 +63,7 @@ public class MavenProject {
     /**
      * Source encoding.
      */
-    private String sourceEncoding = "1.7";
+    private String sourceEncoding = "UTF-8";
     /**
      * Source compile version.
      */
@@ -71,7 +71,7 @@ public class MavenProject {
     /**
      * Target compile version.
      */
-    private String targetVersion;
+    private String targetVersion = "1.7";
     /**
      * Test resource directories.
      */
@@ -155,7 +155,7 @@ public class MavenProject {
      * @return list of dependencies
      */
     public List<MavenDependency> getCompileDependencies() {
-        return getDependencies(new String[]{"provided", "system"});
+        return getDependencies(new String[]{"provided"});
     }
 
     /**

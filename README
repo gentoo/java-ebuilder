@@ -1,0 +1,23 @@
+Java team tool for semi-automatic creation of ebuilds from pom.xml.
+
+Use example:
+
+1. Generate cache of java related packages from portage tree.
+java-ebuilder --refresh-cache -t /usr/portage
+
+2. Find corresponding maven groupId, artifactId and version in the cache.
+cd $HOME/.java-ebuilder
+mv cache cache.raw0
+( echo 1.0; tail -n +2 cache.raw0 | parallel -j -2 scripts/meta.sh; ) > cache.0
+
+3. Generate cache of java related packages from java overaly.
+java-ebuilder --refresh-cache -t /var/lib/layman/java
+
+4. Find corresponding maven groupId, artifactId and version in the cache.
+cd $HOME/.java-ebuilder
+mv cache cache.raw1
+( echo 1.0; tail -n +2 cache.raw1 | parallel -j -2 scripts/meta.sh; ) > cache.1
+
+5. Create ebuild recursively.
+script/tree.sh org.apache.spark:spark-core_2.11:2.0.0
+
