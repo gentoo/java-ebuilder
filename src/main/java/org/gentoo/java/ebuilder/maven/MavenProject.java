@@ -155,7 +155,7 @@ public class MavenProject {
      * @return list of dependencies
      */
     public List<MavenDependency> getCompileDependencies() {
-        return getDependencies(new String[]{"provided", "system"});
+        return getDependencies(new String[]{"provided"});
     }
 
     /**
