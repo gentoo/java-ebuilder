@@ -641,11 +641,6 @@ public class MavenEbuilder {
             writer.println('"');
         }
 
-        writer.print("JAVA_SRC_DIR=\"");
-        writer.print(config.getWorkdir().relativize(
-                mavenProject.getSourceDirectory()));
-        writer.println('"');
-
         if (mavenProject.hasResources()) {
             writer.print("JAVA_RESOURCE_DIRS=\"");
 
