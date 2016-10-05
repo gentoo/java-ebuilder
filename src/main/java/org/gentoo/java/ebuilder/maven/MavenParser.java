@@ -509,7 +509,7 @@ public class MavenParser {
         String groupId = null;
         String artifactId = null;
         String version = null;
-        String scope = null;
+        String scope = "compile";
 
         while (reader.hasNext()) {
             reader.next();
