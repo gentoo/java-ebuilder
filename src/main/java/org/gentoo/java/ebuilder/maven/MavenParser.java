@@ -389,9 +389,6 @@ public class MavenParser {
                     case "artifactId":
                         mavenProject.setArtifactId(reader.getElementText());
                         break;
-                    case "build":
-                        parseProjectBuild(mavenProject, reader);
-                        break;
                     case "dependencies":
                         parseProjectDependencies(mavenProject, mavenCache,
                                 reader);
