@@ -70,9 +70,17 @@ gebd() {
     local P=${PA}-${PV}
     local ebd="${MAVEN_OVERLAY_DIR}"/app-maven/${PA}/${P}.ebuild
 
+    line=app-maven:${PA}:${PV}:${SLOT:-0}::${MID}
+    if ! grep -q ${line} "${CACHEDIR}"/maven-cache 2>/dev/null ; then
+        pushd "${CACHEDIR}" > /dev/null
+        echo ${line} >> maven-cache
+        cat cache.{0,1} maven-cache > cache
+        popd > /dev/null
+    fi
+
     if [[ ! -f "${ebd}" ]]; then
         mkdir -p $(dirname ${ebd})
-        java-ebuilder -p "${POMDIR}"/${M}.pom -e "${ebd}" -g  --workdir . \
+        java-ebuilder -p "${POMDIR}"/${M}.pom -e "${ebd}" -g --workdir . \
                       -u ${SRC_URI} --slot ${SLOT:-0} --keywords ~amd64 \
                       --cache-file "${CACHEDIR}"/cache
 
@@ -81,14 +89,6 @@ gebd() {
         sed -e '/app-maven\/jsch-agentproxy-bin/d' \
             -e '/JAVA_GENTOO_CLASSPATH/s|jsch-agentproxy-bin,||' \
             -i "${ebd}"
-    fi
-
-    line=app-maven:${PA}:${PV}:${SLOT:-0}::${MID}
-    if ! grep -q ${line} "${CACHEDIR}"/maven-cache ; then
-        pushd "${CACHEDIR}" > /dev/null
-        echo ${line} >> maven-cache
-        cat cache.{0,1} maven-cache > cache
-        popd > /dev/null
     fi
 
     if [[ -z "${MAVEN_NODEP}" ]] && mfill "${ebd}"; then

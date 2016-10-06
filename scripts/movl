@@ -49,6 +49,8 @@ build() {
     for M in ${MAVEN_ARTS}; do
         /usr/lib/java-ebuilder/tree.sh ${M}
     done
+
+    ls -1 "${MAVEN_OVERLAY_DIR}"/app-maven/*/*.ebuild | parallel ebuild {} digest
 }
 
 if [[ $# -gt 0 ]]; then
