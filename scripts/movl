@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+source /etc/java-ebuilder.conf
+
+clean-maven() {
+    rm -f "${CACHEDIR}"/maven-cache
+    rm -rf "${MAVEN_OVERLAY_DIR}"/app-maven
+}
+
+clean-pom() {
+    rm -f "${POMDIR}"/*.pom
+}
+
+clean-cache() {
+    rm -f "${CACHEDIR}"/cache.{raw,}{0,1}
+    rm -f "${CACHEDIR}"/b{ebd,pom}
+}
+
+clean() {
+    clean-cache
+    clean-pom
+    clean-maven
+}
+
+build() {
+    if [[ ! -f "${CACHEDIR}"/cache.0 ]]; then
+        # 1. Generate cache of java related packages from portage tree.
+        [[ -f "${CACHEDIR}"/cache.raw0 ]] || \
+            java-ebuilder --refresh-cache -t "${PORTDIR}" --cache-file "${CACHEDIR}"/cache.raw0
+
+        # 2. Find corresponding maven groupId, artifactId and version in the cache.
+        pushd "${CACHEDIR}" > /dev/null
+        ( echo 1.0; tail -n +2 cache.raw0 | parallel -j -1 /usr/lib/java-ebuilder/meta.sh; ) > cache.0
+        popd > /dev/null
+    fi
+
+    # do the same to java overlay
+    if [[ ! -f "${CACHEDIR}"/cache.1 ]]; then
+        if [[ -n "${JAVA_OVERLAY_DIR}" ]]; then
+            [[ -f "${CACHEDIR}"/cache.raw1 ]] || \
+                java-ebuilder --refresh-cache -t "${JAVA_OVERLAY_DIR}" --cache-file "${CACHEDIR}"/cache.raw1
+            pushd "${CACHEDIR}" > /dev/null
+            tail -n +2 cache.raw1 | parallel -j -1 scripts/meta.sh > cache.1
+            popd > /dev/null
+        else
+            touch "${CACHEDIR}"/cache.1
+        fi
+    fi
+
+    for M in ${MAVEN_ARTS}; do
+        /usr/lib/java-ebuilder/tree.sh ${M}
+    done
+}
+
+if [[ $# -gt 0 ]]; then
+    funcs=$@
+else
+    funcs=build
+fi
+
+for func in ${funcs}; do
+    ${func}
+done

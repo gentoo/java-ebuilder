@@ -2,15 +2,15 @@
 # read in cache from java-ebuilder and find out the groupId,
 # artifactId and version.
 
-# cache is by default at $HOME/.java-ebuilder/cache
 # example:
 # ( echo 1.0; tail -n +2 cache | parallel -j -2 meta.sh; ) > cache.1
+source /etc/java-ebuilder.conf
 
 pkg=$(awk -F ":" '{print $1"/"$2"-"$3}' <<< $1)
 spkg=$(cut -d: -f2 <<< $1)
 sver=$(cut -d: -f3 <<< $1)
 case ${spkg} in
-    guava) 
+    guava)
         echo $1:com.google.guava:${spkg}:${sver%%-*}
         exit 0
         ;;
@@ -70,6 +70,7 @@ case ${spkg} in
         exit 0
 esac
 
+touch bebd bpom
 grep -q ${pkg} <bebd <bpom && exit 0
 
 ebd=$(equery w ${pkg} 2>/dev/null)
@@ -81,13 +82,13 @@ fi
 # java-utils-2.eclass:java-pkg_needs-vm()
 export JAVA_PKG_NV_DEPEND="nothing"
 
-if ! ebuild ${ebd} unpack >/dev/null 2>&1; then
+if ! ebuild "${ebd}" unpack >/dev/null 2>&1; then
     echo $1:${pkg} >> bebd
     exit 0
 fi
 
 bad_pom="yes"
-for subd in /dev/shm/portage/${pkg}/work/*; do
+for subd in "${PORTAGE_TMPDIR}"/portage/${pkg}/work/*; do
     [[ -f ${subd}/pom.xml ]] || continue
     bad_pom=""
     pushd ${subd} > /dev/null
@@ -107,4 +108,4 @@ if [[ -n "${bad_pom}" ]]; then
     echo $1:${pkg} >> bpom
 fi
 
-ebuild ${ebd} clean >/dev/null 2>&1
+ebuild "${ebd}" clean >/dev/null 2>&1
