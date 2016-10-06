@@ -5,6 +5,7 @@
 # example:
 # ( echo 1.0; tail -n +2 cache | parallel -j -2 meta.sh; ) > cache.1
 source /etc/java-ebuilder.conf
+: ${PORTAGE_TMPDIR:=$(portageq envvar PORTAGE_TMPDIR)}
 
 pkg=$(awk -F ":" '{print $1"/"$2"-"$3}' <<< $1)
 spkg=$(cut -d: -f2 <<< $1)

@@ -22,6 +22,10 @@ clean() {
 }
 
 build() {
+    : ${PORTDIR:=$(portageq get_repo_path $(portageq envvar EROOT) gentoo)}
+    : ${PORTAGE_TMPDIR:=$(portageq envvar PORTAGE_TMPDIR)}
+    export PORTAGE_TMPDIR
+
     if [[ ! -f "${CACHEDIR}"/cache.0 ]]; then
         # 1. Generate cache of java related packages from portage tree.
         [[ -f "${CACHEDIR}"/cache.raw0 ]] || \
@@ -39,7 +43,7 @@ build() {
             [[ -f "${CACHEDIR}"/cache.raw1 ]] || \
                 java-ebuilder --refresh-cache -t "${JAVA_OVERLAY_DIR}" --cache-file "${CACHEDIR}"/cache.raw1
             pushd "${CACHEDIR}" > /dev/null
-            tail -n +2 cache.raw1 | parallel -j -1 scripts/meta.sh > cache.1
+            tail -n +2 cache.raw1 | parallel -j -1 /usr/lib/java-ebuilder/meta.sh > cache.1
             popd > /dev/null
         else
             touch "${CACHEDIR}"/cache.1
