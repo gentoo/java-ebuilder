@@ -9,6 +9,7 @@ Usage: jar <args>
                             times)
 --portage-tree|-t           path to portage tree that should be parsed when
                             refreshing cache (default is /usr/portage)
+--cache-file		    location of output cache file (default is ~/.java-ebuilder/cache)
 --refresh-cache|-c          refreshes java ebuild cache
 --slot|-s  <slot>           SLOT number
 --workdir|-w <dir>          path to workdir (default is current directory)

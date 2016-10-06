@@ -220,10 +220,15 @@ public class Main {
                     i++;
                     config.addPomFile(Paths.get(args[i]));
                     break;
-                case "-portage-tree":
+                case "--portage-tree":
                 case "-t":
                     i++;
                     config.setPortageTree(Paths.get(args[i]).toAbsolutePath().
+                            normalize());
+                    break;
+                case "--cache-file":
+                    i++;
+                    config.setCacheFile(Paths.get(args[i]).toAbsolutePath().
                             normalize());
                     break;
                 case "--refresh-cache":

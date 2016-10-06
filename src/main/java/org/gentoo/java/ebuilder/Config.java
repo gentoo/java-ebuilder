@@ -18,7 +18,7 @@ public class Config {
     /**
      * Path to portage ebuild cache.
      */
-    private final Path cacheFile = Paths.get(System.getProperty("user.home"),
+    private Path cacheFile = Paths.get(System.getProperty("user.home"),
             ".java-ebuilder/cache");
     /**
      * URI that goes to SRC_URI.
@@ -97,6 +97,15 @@ public class Config {
      */
     public Path getCacheFile() {
         return cacheFile;
+    }
+
+    /**
+     * Setter for {@link #cacheFile}.
+     *
+     * @param cacheFile {@link #cacheFile}
+     */
+    public void setCacheFile(final Path cacheFile) {
+        this.cacheFile = cacheFile;
     }
 
     /**
