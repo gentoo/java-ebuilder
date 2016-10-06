@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # start from the root of a maven artifact and recursively resolve its
 # dependencies.
 

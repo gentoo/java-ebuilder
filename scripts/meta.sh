@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # read in cache from java-ebuilder and find out the groupId,
 # artifactId and version.
 
