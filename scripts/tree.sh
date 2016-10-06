@@ -2,7 +2,9 @@
 # start from the root of a maven artifact and recursively resolve its
 # dependencies.
 
-mkdir -p ../poms
+source /etc/java-ebuilder.conf
+
+mkdir -p "${POMDIR}"
 
 gebd() {
     case ${MA} in
@@ -45,8 +47,8 @@ gebd() {
     local M=${MA}-${MV}
     local SRC_URI="http://central.maven.org/maven2/${WORKDIR}/${MV}/${M}-sources.jar"
 
-    if [[ ! -f ../poms/${M}.pom ]]; then
-        pushd ../poms
+    if [[ ! -f "${POMDIR}"/${M}.pom ]]; then
+        pushd "${POMDIR}"
         wget ${SRC_URI/-sources.jar/.pom}
 
         # 3rd party plugin not needed here
@@ -66,40 +68,42 @@ gebd() {
         PA=${PA}-bin
     fi
     local P=${PA}-${PV}
-    local ebd=app-maven/${PA}/${P}.ebuild
+    local ebd="${MAVEN_OVERLAY_DIR}"/app-maven/${PA}/${P}.ebuild
 
-    if [[ ! -f app-maven/${PA}/${P}.ebuild ]]; then
-        mkdir -p app-maven/${PA}
-        java-ebuilder -p ../poms/${M}.pom -e ${ebd} -g  --workdir . \
-                      -u ${SRC_URI} --slot ${SLOT:-0} --keywords ~amd64
+    if [[ ! -f "${ebd}" ]]; then
+        mkdir -p $(dirname ${ebd})
+        java-ebuilder -p "${POMDIR}"/${M}.pom -e "${ebd}" -g  --workdir . \
+                      -u ${SRC_URI} --slot ${SLOT:-0} --keywords ~amd64 \
+                      --cache-file "${CACHEDIR}"/cache
 
         # empty parent artifacts
         # FIXME, this should be removed in poms
         sed -e '/app-maven\/jsch-agentproxy-bin/d' \
             -e '/JAVA_GENTOO_CLASSPATH/s|jsch-agentproxy-bin,||' \
-            -i ${ebd}
+            -i "${ebd}"
     fi
 
     line=app-maven:${PA}:${PV}:${SLOT:-0}::${MID}
-    if ! grep -q ${line} ${HOME}/.java-ebuilder/maven-cache ; then
-        pushd ${HOME}/.java-ebuilder > /dev/null
+    if ! grep -q ${line} "${CACHEDIR}"/maven-cache ; then
+        pushd "${CACHEDIR}" > /dev/null
         echo ${line} >> maven-cache
         cat cache.{0,1} maven-cache > cache
         popd > /dev/null
     fi
 
-    if [[ -z "${MAVEN_NODEP}" ]] && mfill ${ebd}; then
-        java-ebuilder -p ../poms/${M}.pom -e ${ebd} -g  --workdir . \
-                      -u ${SRC_URI} --slot ${SLOT:-0} --keywords ~amd64
+    if [[ -z "${MAVEN_NODEP}" ]] && mfill "${ebd}"; then
+        java-ebuilder -p "${POMDIR}"/${M}.pom -e "${ebd}" -g --workdir . \
+                      -u ${SRC_URI} --slot ${SLOT:-0} --keywords ~amd64 \
+                      --cache-file "${CACHEDIR}"/cache
 
         # empty parent artifacts
         # FIXME, this should be removed in poms
         sed -e '/app-maven\/jsch-agentproxy-bin-[0-9]/d' \
             -e '/JAVA_GENTOO_CLASSPATH/s|jsch-agentproxy-bin,||' \
-            -i ${ebd}
+            -i "${ebd}"
     fi
 
-    [[ ${SRC_URI} = *-sources.jar ]] || sed -i "/inherit/s/java-pkg-simple/java-pkg-binjar/" ${ebd}
+    [[ ${SRC_URI} = *-sources.jar ]] || sed -i "/inherit/s/java-pkg-simple/java-pkg-binjar/" "${ebd}"
 }
 
 mfill() {
