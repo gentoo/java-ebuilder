@@ -14,8 +14,12 @@ case ${spkg} in
         echo $1:com.google.guava:${spkg}:${sver%%-*}
         exit 0
         ;;
-    json)
-        echo $1:org.json:${spkg}:${sver%%-*}
+    json|jmock)
+        echo $1:org.${spkg}:${spkg}:${sver%%-*}
+        exit 0
+        ;;
+    hamcrest-*)
+        echo $1:org.${spkg%%-*}:${spkg}:${sver%%-*}
         exit 0
         ;;
     xerces)
@@ -24,7 +28,12 @@ case ${spkg} in
         echo $1:xerces:xmlParserAPIs:${sver%%-*}
         exit 0
         ;;
-    commons-*|classworlds|jdom)
+    commons-*|classworlds|jdom|xalan*)
+        echo $1:${spkg}:${spkg}:${sver%%-*}
+        exit 0
+        ;;
+    javax-inject)
+        spkg=${spkg/-/.}
         echo $1:${spkg}:${spkg}:${sver%%-*}
         exit 0
         ;;

@@ -30,11 +30,10 @@ gebd() {
     PV=${PV/-beta-/_beta}
     # aopalliance-repackaged 2.5.0-b16
     PV=${PV/-b/_beta}
+    # cdi-api 1.0-SP4
+    PV=${PV/-SP/_p}
     # javax.xml.stream:stax-api:1.0-2
     PV=${PV//-/.}
-
-    local M=${MA}-${MV}
-    local SRC_URI="http://central.maven.org/maven2/${WORKDIR}/${MV}/${M}-sources.jar"
 
     # spark-launcher_2.11 for scala 2.11
     eval $(sed -nr 's,([^_]*)(_(.*))?,PA=\1 SLOT=\3,p' <<< ${MA})
@@ -42,8 +41,9 @@ gebd() {
     [[ -z "${SLOT}" ]] && PA=${MA}
     PA=${PA//./-}
     PA=${PA//_/-}
-    local P=${PA}-${PV}
-    local ebd=app-maven/${PA}/${P}.ebuild
+
+    local M=${MA}-${MV}
+    local SRC_URI="http://central.maven.org/maven2/${WORKDIR}/${MV}/${M}-sources.jar"
 
     if [[ ! -f ../poms/${M}.pom ]]; then
         pushd ../poms
@@ -61,7 +61,12 @@ gebd() {
         popd
     fi
 
-    wget -q --spider ${SRC_URI} || SRC_URI=${SRC_URI/-sources.jar/.jar}
+    if ! wget -q --spider ${SRC_URI}; then
+        SRC_URI=${SRC_URI/-sources.jar/.jar}
+        PA=${PA}-bin
+    fi
+    local P=${PA}-${PV}
+    local ebd=app-maven/${PA}/${P}.ebuild
 
     if [[ ! -f app-maven/${PA}/${P}.ebuild ]]; then
         mkdir -p app-maven/${PA}
@@ -70,7 +75,9 @@ gebd() {
 
         # empty parent artifacts
         # FIXME, this should be removed in poms
-        sed -i '/app-maven\/jsch-agentproxy-[0-9]/d' ${ebd}
+        sed -e '/app-maven\/jsch-agentproxy-bin/d' \
+            -e '/JAVA_GENTOO_CLASSPATH/s|jsch-agentproxy-bin,||' \
+            -i ${ebd}
     fi
 
     line=app-maven:${PA}:${PV}:${SLOT:-0}::${MID}
@@ -81,9 +88,15 @@ gebd() {
         popd > /dev/null
     fi
 
-    if [[ -z "${MAVEN_NODEP}" ]] && mfill app-maven/${PA}/${P}.ebuild; then
+    if [[ -z "${MAVEN_NODEP}" ]] && mfill ${ebd}; then
         java-ebuilder -p ../poms/${M}.pom -e ${ebd} -g  --workdir . \
                       -u ${SRC_URI} --slot ${SLOT:-0} --keywords ~amd64
+
+        # empty parent artifacts
+        # FIXME, this should be removed in poms
+        sed -e '/app-maven\/jsch-agentproxy-bin-[0-9]/d' \
+            -e '/JAVA_GENTOO_CLASSPATH/s|jsch-agentproxy-bin,||' \
+            -i ${ebd}
     fi
 
     [[ ${SRC_URI} = *-sources.jar ]] || sed -i "/inherit/s/java-pkg-simple/java-pkg-binjar/" ${ebd}
@@ -104,8 +117,10 @@ mfill() {
 }
 
 if [[ $1 == *.ebuild ]]; then
-    mfill $1
+    eval $(grep MAVEN_ID $1)
+    rm -f $1
 else
-    eval $(awk -F":" '{print "PG="$1, "MA="$2, "MV="$3}' <<< $1)
-    gebd
+    MAVEN_ID=$1
 fi
+eval $(awk -F":" '{print "PG="$1, "MA="$2, "MV="$3}' <<< ${MAVEN_ID})
+gebd
