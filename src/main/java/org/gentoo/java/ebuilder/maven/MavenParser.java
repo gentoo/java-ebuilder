@@ -515,6 +515,8 @@ public class MavenParser {
                 switch (reader.getLocalName()) {
                     case "artifactId":
                         artifactId = reader.getElementText();
+			/* jsch.agentproxy is an empty artifact. */
+			if (artifactId.equals("jsch.agentproxy")) return;
                         break;
                     case "groupId":
                         groupId = reader.getElementText();

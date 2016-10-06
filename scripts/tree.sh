@@ -83,24 +83,12 @@ gebd() {
         java-ebuilder -p "${POMDIR}"/${M}.pom -e "${ebd}" -g --workdir . \
                       -u ${SRC_URI} --slot ${SLOT:-0} --keywords ~amd64 \
                       --cache-file "${CACHEDIR}"/cache
-
-        # empty parent artifacts
-        # FIXME, this should be removed in poms
-        sed -e '/app-maven\/jsch-agentproxy-bin/d' \
-            -e '/JAVA_GENTOO_CLASSPATH/s|jsch-agentproxy-bin,||' \
-            -i "${ebd}"
     fi
 
     if [[ -z "${MAVEN_NODEP}" ]] && mfill "${ebd}"; then
         java-ebuilder -p "${POMDIR}"/${M}.pom -e "${ebd}" -g --workdir . \
                       -u ${SRC_URI} --slot ${SLOT:-0} --keywords ~amd64 \
                       --cache-file "${CACHEDIR}"/cache
-
-        # empty parent artifacts
-        # FIXME, this should be removed in poms
-        sed -e '/app-maven\/jsch-agentproxy-bin-[0-9]/d' \
-            -e '/JAVA_GENTOO_CLASSPATH/s|jsch-agentproxy-bin,||' \
-            -i "${ebd}"
     fi
 
     [[ ${SRC_URI} = *-sources.jar ]] || sed -i "/inherit/s/java-pkg-simple/java-pkg-binjar/" "${ebd}"
