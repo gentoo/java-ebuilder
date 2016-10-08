@@ -48,7 +48,7 @@ gebd() {
     local SRC_URI="http://central.maven.org/maven2/${WORKDIR}/${MV}/${M}-sources.jar"
 
     if [[ ! -f "${POMDIR}"/${M}.pom ]]; then
-        pushd "${POMDIR}"
+        pushd "${POMDIR}" > /dev/null
         wget ${SRC_URI/-sources.jar/.pom}
 
         # 3rd party plugin not needed here
