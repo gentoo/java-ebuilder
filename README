@@ -1,5 +1,8 @@
 Java team tool for semi-automatic creation of ebuilds from pom.xml.
 
+0. Java-ebuilder is available in gentoo as app-portage/java-ebuilder.
+   `emerge app-portage/java-ebuilder`
+
 1. Edit /etc/java-ebuilder.conf to add the artifact you want to MAVEN_ARTS, separated by space.
 
 2. Run `movl build`
