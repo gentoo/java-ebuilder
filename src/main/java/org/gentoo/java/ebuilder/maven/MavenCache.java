@@ -163,13 +163,13 @@ public class MavenCache {
     }
 
     /**
-     * Strips all -r* and _* segments from the version string.
+     * Strips all -r* from the version string.
      *
      * @param version version string
      *
      * @return stripped version string
      */
     private String stripExtraFromVersion(final String version) {
-        return version.replaceAll("-r\\d+", "").replaceAll("_.*", "");
+        return version.replaceAll("-r\\d+", "");
     }
 }
