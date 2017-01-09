@@ -16,6 +16,10 @@ public class MavenVersion implements Comparable<MavenVersion> {
     private static final Pattern PATTERN_VERSION = Pattern.compile(
             "^v?(\\d+)(?:\\.(\\d+))?(?:(?:\\.|b|beta)(\\d+))?(?:[\\.-](.*))?$");
     /**
+     * Pattern for parsing maven version range.
+     */
+    private static final Pattern p_VERSION_RANGE = Pattern.compile("\\[.*, ?(.*?)\\]");
+    /**
      * Incremental version number.
      */
     private final int incrementalVersion;
@@ -37,7 +41,11 @@ public class MavenVersion implements Comparable<MavenVersion> {
      *
      * @param version version string
      */
-    public MavenVersion(final String version) {
+    public MavenVersion(String version) {
+	Matcher m_RANGE = p_VERSION_RANGE.matcher(version);
+        if (m_RANGE.matches()) {
+            version = m_RANGE.group(1);
+        }
         final Matcher matcher = PATTERN_VERSION.matcher(version);
 
         if (!matcher.matches()) {
