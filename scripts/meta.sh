@@ -69,6 +69,11 @@ case ${spkg} in
         echo $1:org.ow2.asm:${spkg}-all:${sver%%-*}
         echo $1:org.ow2.asm:${spkg}-debug-all:${sver%%-*}
         exit 0
+	;;
+    cofoja)
+	echo $1:org.huoc:${spkg}:${sver%%-*}
+	exit 0
+	;;
 esac
 
 touch bebd bpom

@@ -16,8 +16,7 @@ gebd() {
 
     local WORKDIR=${PG//./\/}/${MA} MID
     local MID=${PG}:${MA}:${MV}
-    # .Final .GA .v20121024 means nothing
-    local PV=${MV%.[a-zA-Z]*} PA SLOT
+    local PV=${MV} PA SLOT
 
     case ${MA} in
         opengl-api)
@@ -25,17 +24,39 @@ gebd() {
             ;;
     esac
 
+    # com.github.lindenb:jbwa:1.0.0_ppc64
+    PV=${PV/_/.}
     # plexus-container-default 1.0-alpha-9-stable-1
-    PV=${PV/-stable-*/}
-    PV=${PV/-alpha-/_alpha}
+    PV=${PV/-stable-/.}
+    PV=$(sed -r 's/[.-]?alpha[-.]?/_alpha/' <<< ${PV})
     # wagon-provider-api 1.0-beta-7
-    PV=${PV/-beta-/_beta}
+    # com.google.cloud.datastore:datastore-v1beta3-proto-client:1.0.0-beta.2
+    # com.google.cloud.datastore:datastore-v1beta3-protos:1.0.0-beta
+    PV=$(sed -r 's/[.-]?beta[-.]?/_beta/' <<< ${PV})
     # aopalliance-repackaged 2.5.0-b16
     PV=${PV/-b/_beta}
+    # com.google.auto.service:auto-service:1.0-rc2
+    PV=${PV/-rc/_rc}
     # cdi-api 1.0-SP4
     PV=${PV/-SP/_p}
+    # org.seqdoop:cofoja:1.1-r150
+    PV=${PV/-rev/_p}
+    PV=${PV/-r/_p}
+    PV=${PV/.v/_p}
     # javax.xml.stream:stax-api:1.0-2
     PV=${PV//-/.}
+    # .Final .GA -incubating means nothing
+    PV=${PV%.[a-zA-Z]*}
+    # com.google.cloud.genomics:google-genomics-dataflow:v1beta2-0.15 -> 1.2.0.15
+    # plexus-container-default 1.0-alpha-9-stable-1 -> 1.0.9.1
+    PV=$(sed -r 's/_(rc|beta|alpha|p)(.*\..*)/.\2/' <<< ${PV})
+    # remove all non-numeric charactors before _
+    # org.scalamacros:quasiquotes_2.10:2.0.0-M8
+    if [[ ${PV} = *_* ]]; then
+	PV=$(sed 's/[^.0-9]//g' <<< ${PV/_*/})_${PV/*_/}
+    else
+	PV=$(sed 's/[^.0-9]//g' <<< ${PV})
+    fi
 
     # spark-launcher_2.11 for scala 2.11
     eval $(sed -nr 's,([^_]*)(_(.*))?,PA=\1 SLOT=\3,p' <<< ${MA})
