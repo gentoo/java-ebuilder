@@ -1,5 +1,6 @@
 #!/bin/bash
-source /etc/java-ebuilder.conf
+source "/etc/java-ebuilder.conf"
+tsh="/usr/lib/java-ebuilder/tree.sh"
 
 clean-maven() {
     rm -f "${CACHEDIR}"/maven-cache
@@ -19,6 +20,27 @@ clean() {
     clean-cache
     clean-pom
     clean-maven
+}
+
+rrdep() {
+    # regenerate reverse dependencies
+    for rdep in $(egrep -l "$1.*->" -r "${MAVEN_OVERLAY_DIR}"/app-maven); do
+	[[ ${rdep} = *.ebuild ]] && "${tsh}" ${rdep}
+    done
+}
+
+refresh() {
+    if [[ $1=*:* ]]; then
+	rrdep $1
+    else
+	# input: package name
+	for ebd in "${MAVEN_OVERLAY_DIR}"/app-maven/$1/*.ebuild; do
+	    mid=$(sed -nr 's,^MAVEN_ID="(.*)",\1,p' "${ebd}")
+	    rm "${ebd}"; "${tsh}" ${mid}
+    	    sed "/${mid}/d" -i "${CACHEDIR}"/maven-cache
+	    rrdep ${mid}
+	done
+    fi
 }
 
 build() {
@@ -51,18 +73,20 @@ build() {
     fi
 
     for M in ${MAVEN_ARTS}; do
-        /usr/lib/java-ebuilder/tree.sh ${M}
+        "${tsh}" ${M}
     done
 
-    ls -1 "${MAVEN_OVERLAY_DIR}"/app-maven/*/*.ebuild | parallel ebuild {} digest
+    cd "${MAVEN_OVERLAY_DIR}"/app-maven
+    parallel ebuild '$(echo {}/*.ebuild | cut -d\  -f1)' digest ::: *
 }
 
 if [[ $# -gt 0 ]]; then
-    funcs=$@
+    funcs=$1
+    shift 1
 else
     funcs=build
 fi
 
 for func in ${funcs}; do
-    ${func}
+    ${func} $@
 done
