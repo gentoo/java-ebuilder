@@ -74,6 +74,10 @@ case ${spkg} in
 	echo $1:org.huoc:${spkg}:${sver%%-*}
 	exit 0
 	;;
+    scala)
+	echo $1:org.scala-lang:${spkg}-compiler:${sver%%-*}
+	exit 0
+	;;
 esac
 
 touch bebd bpom
