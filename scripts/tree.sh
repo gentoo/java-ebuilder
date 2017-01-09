@@ -6,24 +6,8 @@ source /etc/java-ebuilder.conf
 
 mkdir -p "${POMDIR}"
 
-gebd() {
-    case ${MA} in
-        weld-osgi-bundle)
-            # 1.1.0.Final no longer exist
-            [[ ${MV} = 1.1.0.Final ]] && MV=1.1.33.Final
-            ;;
-    esac
-
-    local WORKDIR=${PG//./\/}/${MA} MID
-    local MID=${PG}:${MA}:${MV}
-    local PV=${MV} PA SLOT
-
-    case ${MA} in
-        opengl-api)
-            [[ ${MV} = 2.1.1 ]] && MV=gl1.1-android-2.1_r1
-            ;;
-    esac
-
+sver() {
+    PV=$1
     # com.github.lindenb:jbwa:1.0.0_ppc64
     PV=${PV/_/.}
     # plexus-container-default 1.0-alpha-9-stable-1
@@ -49,14 +33,36 @@ gebd() {
     PV=${PV%.[a-zA-Z]*}
     # com.google.cloud.genomics:google-genomics-dataflow:v1beta2-0.15 -> 1.2.0.15
     # plexus-container-default 1.0-alpha-9-stable-1 -> 1.0.9.1
-    PV=$(sed -r 's/_(rc|beta|alpha|p)(.*\..*)/.\2/' <<< ${PV})
+    while [[ ${PV} != ${PV0} ]]; do
+	PV0=${PV}
+	PV=$(sed -r 's/_(rc|beta|alpha|p)(.*\..*)/.\2/' <<< ${PV0})
+    done
     # remove all non-numeric charactors before _
     # org.scalamacros:quasiquotes_2.10:2.0.0-M8
     if [[ ${PV} = *_* ]]; then
-	PV=$(sed 's/[^.0-9]//g' <<< ${PV/_*/})_${PV/*_/}
+	echo $(sed 's/[^.0-9]//g' <<< ${PV/_*/})_${PV/*_/}
     else
-	PV=$(sed 's/[^.0-9]//g' <<< ${PV})
+	sed 's/[^.0-9]//g' <<< ${PV}
     fi
+}
+
+gebd() {
+    case ${MA} in
+        weld-osgi-bundle)
+            # 1.1.0.Final no longer exist
+            [[ ${MV} = 1.1.0.Final ]] && MV=1.1.33.Final
+            ;;
+    esac
+
+    local WORKDIR=${PG//./\/}/${MA} MID
+    local MID=${PG}:${MA}:${MV}
+    local PV=$(sver ${MV}) PA SLOT
+
+    case ${MA} in
+        opengl-api)
+            [[ ${MV} = 2.1.1 ]] && MV=gl1.1-android-2.1_r1
+            ;;
+    esac
 
     # spark-launcher_2.11 for scala 2.11
     eval $(sed -nr 's,([^_]*)(_(.*))?,PA=\1 SLOT=\3,p' <<< ${MA})
