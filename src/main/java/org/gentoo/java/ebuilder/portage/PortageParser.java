@@ -292,6 +292,10 @@ public class PortageParser {
                 (final File pathname) -> pathname.isFile()
                 && pathname.getName().endsWith(".ebuild"));
 
+        if (ebuilds == null) {
+            return;
+        }
+
         for (final File ebuild : ebuilds) {
             parseEbuild(ebuild);
             processedEbuilds++;
