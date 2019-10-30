@@ -515,8 +515,12 @@ public class MavenParser {
                 switch (reader.getLocalName()) {
                     case "artifactId":
                         artifactId = reader.getElementText();
+
 			/* jsch.agentproxy is an empty artifact. */
-			if (artifactId.equals("jsch.agentproxy")) return;
+                        // TODO: this should go to a config file to ignore some artifacts
+			if (artifactId.equals("jsch.agentproxy")) {
+                            return;
+                        }
                         break;
                     case "groupId":
                         groupId = reader.getElementText();
@@ -529,6 +533,7 @@ public class MavenParser {
                                 "");
 			/* crazy version from
 			 * org.khronos:opengl-api:gl1.1-android-2.1_r1 */
+                        // TODO: this should go to a file mapping crazy versions
 			if (version.equals("gl1.1-android-2.1_r1")) {
 			    version = "2.1.1";
 			}
