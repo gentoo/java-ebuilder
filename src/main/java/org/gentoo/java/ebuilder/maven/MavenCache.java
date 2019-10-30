@@ -98,8 +98,8 @@ public class MavenCache {
 
         cache.clear();
 
-        try (final BufferedReader reader = new BufferedReader(new FileReader(
-                config.getCacheFile().toFile()))) {
+        try (final BufferedReader reader = new BufferedReader(
+                new FileReader(config.getCacheFile().toFile()))) {
             String line = reader.readLine();
 
             if (!PortageParser.CACHE_VERSION.equals(line)) {

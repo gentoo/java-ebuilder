@@ -174,7 +174,8 @@ public class PortageParser {
      */
     private void parseEbuild(final File ebuild) {
         final String filename = ebuild.getName().replaceAll("\\.ebuild$", "");
-        final String category = ebuild.getParentFile().getParentFile().getName();
+        final String category
+                = ebuild.getParentFile().getParentFile().getName();
         final String pkg = ebuild.getParentFile().getName();
         final String version = filename.substring(pkg.length() + 1);
         final Map<String, String> variables = new HashMap<>(20);
@@ -206,8 +207,8 @@ public class PortageParser {
                     final Matcher matcher = PATTERN_VARIABLE.matcher(line);
 
                     if (matcher.matches()) {
-                        variables.put(matcher.group(1), matcher.group(2).
-                                replaceAll("(^\"|\"$)", ""));
+                        variables.put(matcher.group(1),
+                                matcher.group(2).replaceAll("(^\"|\"$)", ""));
                     }
 
                     if (line.startsWith("inherit ")) {
@@ -336,8 +337,8 @@ public class PortageParser {
         }
 
         if (result.indexOf('$') != -1) {
-            final Matcher matcher = PATTERN_SLOT_VERSION_COMPOPONENT_RANGE.
-                    matcher(result);
+            final Matcher matcher
+                    = PATTERN_SLOT_VERSION_COMPOPONENT_RANGE.matcher(result);
 
             if (matcher.matches()) {
                 final int start = Integer.parseInt(matcher.group(1), 10);
