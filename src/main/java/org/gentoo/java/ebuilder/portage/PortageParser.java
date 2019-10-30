@@ -386,7 +386,8 @@ public class PortageParser {
                         StandardOpenOption.TRUNCATE_EXISTING),
                 Charset.forName("UTF-8"))) {
             writer.write(CACHE_VERSION);
-            writer.write('\n');
+            writer.write("\n#category:pkg:version:slot:useFlag:groupId:"
+                    + "artifactId:mavenVersion\n");
 
             for (final CacheItem cacheItem : cacheItems) {
                 writer.write(cacheItem.getCategory());

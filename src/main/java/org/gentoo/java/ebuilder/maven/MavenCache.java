@@ -112,7 +112,7 @@ public class MavenCache {
             line = reader.readLine();
 
             while (line != null) {
-                if (!line.isEmpty()) {
+                if (!line.isEmpty() && line.charAt(0) != '#') {
                     addCacheItem(new CacheItem(line));
                 }
 
