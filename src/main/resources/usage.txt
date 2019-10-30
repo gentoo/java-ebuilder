@@ -1,4 +1,4 @@
-Usage: jar <args>
+Usage: java-ebuilder <args>
 --download-uri|-u <uri>     uri that goes to SRC_URI
 --ebuild|-e <file>          path to ebuild that should be created
 --generate-ebuild|-g        generates ebuild from pom.xml
