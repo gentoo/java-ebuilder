@@ -18,7 +18,8 @@ public class MavenVersion implements Comparable<MavenVersion> {
     /**
      * Pattern for parsing maven version range.
      */
-    private static final Pattern p_VERSION_RANGE = Pattern.compile("\\[.*, ?(.*?)\\]");
+    private static final Pattern PATTERN_VERSION_RANGE
+            = Pattern.compile("\\[.*, ?(.*?)\\]");
     /**
      * Incremental version number.
      */
@@ -41,16 +42,21 @@ public class MavenVersion implements Comparable<MavenVersion> {
      *
      * @param version version string
      */
-    public MavenVersion(String version) {
-	Matcher m_RANGE = p_VERSION_RANGE.matcher(version);
-        if (m_RANGE.matches()) {
-            version = m_RANGE.group(1);
+    public MavenVersion(final String version) {
+        final Matcher matcherRange = PATTERN_VERSION_RANGE.matcher(version);
+        final String useVersion;
+
+        if (matcherRange.matches()) {
+            useVersion = matcherRange.group(1);
+        } else {
+            useVersion = version;
         }
-        final Matcher matcher = PATTERN_VERSION.matcher(version);
+
+        final Matcher matcher = PATTERN_VERSION.matcher(useVersion);
 
         if (!matcher.matches()) {
-            throw new RuntimeException("Maven version " + version
-                    + " is not valid.");
+            throw new RuntimeException(
+                    "Maven version " + useVersion + " is not valid.");
         }
 
         majorVersion = Integer.parseInt(matcher.group(1), 10);

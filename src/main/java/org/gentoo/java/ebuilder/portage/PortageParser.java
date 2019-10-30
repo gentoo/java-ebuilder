@@ -30,6 +30,10 @@ public class PortageParser {
      */
     public static final String CACHE_VERSION = "1.0";
     /**
+     * Current ant utilities eclass name.
+     */
+    private static final String ECLASS_ANT_TASKS = "ant-tasks";
+    /**
      * Current java package eclass name.
      */
     private static final String ECLASS_JAVA_PKG = "java-pkg-2";
@@ -45,10 +49,6 @@ public class PortageParser {
      * Current java utilities eclass name.
      */
     private static final String ECLASS_JAVA_UTILS = "java-utils-2";
-    /**
-     * Current ant utilities eclass name.
-     */
-    private static final String ECLASS_ANT_TASKS = "ant-tasks";
     /**
      * Pattern for parsing SLOT with bash substring.
      */
@@ -130,8 +130,8 @@ public class PortageParser {
             return ECLASS_JAVA_PKG_SIMPLE;
         } else if (inheritLine.contains(ECLASS_JAVA_UTILS)) {
             return ECLASS_JAVA_UTILS;
-	} else if (inheritLine.contains(ECLASS_ANT_TASKS)) {
-	    return ECLASS_ANT_TASKS;
+        } else if (inheritLine.contains(ECLASS_ANT_TASKS)) {
+            return ECLASS_ANT_TASKS;
         } else {
             return null;
         }

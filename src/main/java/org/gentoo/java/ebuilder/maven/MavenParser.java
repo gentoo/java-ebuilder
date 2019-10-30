@@ -529,8 +529,9 @@ public class MavenParser {
                         scope = reader.getElementText();
                         break;
                     case "version":
-                        version = reader.getElementText().replace("-SNAPSHOT",
-                                "");
+                        version = reader.getElementText().replace(
+                                "-SNAPSHOT", "");
+
 			/* crazy version from
 			 * org.khronos:opengl-api:gl1.1-android-2.1_r1 */
                         // TODO: this should go to a file mapping crazy versions
