@@ -473,7 +473,6 @@ public class MavenEbuilder {
                 LocalDate.now().getYear());
         writer.println("# Distributed under the terms of the GNU General "
                 + "Public License v2");
-        writer.println("# $Id$");
     }
 
     /**
