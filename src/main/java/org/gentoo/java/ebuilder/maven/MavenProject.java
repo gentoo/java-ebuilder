@@ -67,11 +67,11 @@ public class MavenProject {
     /**
      * Source compile version.
      */
-    private String sourceVersion = "1.7";
+    private String sourceVersion = "1.8";
     /**
      * Target compile version.
      */
-    private String targetVersion = "1.7";
+    private String targetVersion = "1.8";
     /**
      * Test resource directories.
      */
