@@ -274,7 +274,8 @@ public class Main {
             config.setEbuildVersionSuffix(result.get("suffix"));
 
             config.getStdoutWriter().println(MessageFormat.format("Parsed "
-                    + "ebuild file name - name: {0} version: {1} suffix: {2}",
+                    + "ebuild file name: name = {0}, version = {1}, "
+                    + "suffix = {2}",
                     config.getEbuildName(), config.getEbuildVersion(),
                     config.getEbuildVersionSuffix()));
         } catch (final IllegalArgumentException ex) {
