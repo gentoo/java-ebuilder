@@ -568,10 +568,6 @@ public class MavenEbuilder {
         writer.print(config.getKeywords());
         writer.println('"');
 
-        writer.print("IUSE=\"");
-
-        writer.println('"');
-
         writer.print("MAVEN_ID=\"");
         writer.print(mavenProject.getGroupId());
         writer.print(':');
