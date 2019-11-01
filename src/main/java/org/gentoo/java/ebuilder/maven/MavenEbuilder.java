@@ -19,7 +19,7 @@ public class MavenEbuilder {
     /**
      * EAPI version.
      */
-    private static final String EAPI = "5";
+    private static final String EAPI = "7";
 
     /**
      * Generates ebuild from the collected information at the specified path.
