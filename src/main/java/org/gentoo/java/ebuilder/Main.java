@@ -9,6 +9,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 import org.gentoo.java.ebuilder.maven.MavenCache;
 import org.gentoo.java.ebuilder.maven.MavenEbuilder;
 import org.gentoo.java.ebuilder.maven.MavenParser;
@@ -159,6 +160,8 @@ public class Main {
      * @param config application configuration
      */
     private static void generateEbuild(final Config config) {
+        parseEbuildName(config);
+
         final MavenCache mavenCache = new MavenCache();
         mavenCache.loadCache(config);
 
@@ -250,6 +253,33 @@ public class Main {
                             + "' is not supported.");
                     Runtime.getRuntime().exit(1);
             }
+        }
+    }
+
+    /**
+     * Parses ebuild file name into its components.
+     *
+     * @param config app configuration containing ebuild information
+     */
+    private static void parseEbuildName(final Config config) {
+        final Map<String, String> result;
+
+        try {
+            result = PortageParser.parseEbuildName(
+                    config.getEbuild().getFileName().toString());
+
+            config.setEbuildName(result.get("name"));
+            config.setEbuildVersion(result.get("version"));
+            config.setEbuildVersionSuffix(result.get("suffix"));
+
+            config.getStdoutWriter().println("Parsed ebuild file name - name: "
+                    + config.getEbuildName() + " version: "
+                    + config.getEbuildVersion() + " suffix: "
+                    + config.getEbuildVersionSuffix());
+        } catch (final IllegalArgumentException ex) {
+            config.getStdoutWriter().println("Cannot parse ebuild file name");
+
+            Runtime.getRuntime().exit(1);
         }
     }
 

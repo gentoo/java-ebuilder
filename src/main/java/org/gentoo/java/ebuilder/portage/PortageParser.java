@@ -50,6 +50,11 @@ public class PortageParser {
      */
     private static final String ECLASS_JAVA_UTILS = "java-utils-2";
     /**
+     * Pattern for parsing ebuild file name.
+     */
+    private static final Pattern PATTERN_EBUILD_NAME = Pattern.compile(
+            "^(\\S+?)-([^-]+)(?:-(r\\d+))?\\.ebuild$");
+    /**
      * Pattern for parsing SLOT with bash substring.
      */
     private static final Pattern PATTERN_SLOT_SUBSTRING = Pattern.compile(
@@ -67,6 +72,46 @@ public class PortageParser {
      */
     private static final Pattern PATTERN_VARIABLE = Pattern.compile(
             "^(\\S+?)=(.*)$");
+
+    /**
+     * Parses ebuild name into map. Keys are:
+     * <dl>
+     * <dt>name</dt>
+     * <dd>ebuild name</dd>
+     * <dt>version</dt>
+     * <dd>ebuild version</dd>
+     * <dt>suffix</dt>
+     * <dd>ebuild version suffix (-r)</dd>
+     * </dl>
+     * If suffix is not present in ebuild name, it is not put into the map
+     * aswell.
+     *
+     * @param name ebuild file name
+     *
+     * @return map of parsed values
+     *
+     * @throws IllegalArgumentException Thrown if the ebuild file name is not
+     *                                  valid or it cannot be parsed.
+     */
+    public static Map<String, String> parseEbuildName(final String name) {
+        final Matcher matcher = PATTERN_EBUILD_NAME.matcher(name);
+
+        if (!matcher.matches()) {
+            throw new IllegalArgumentException("Ebuild file name is not valid "
+                    + "or parser does not support this ebuild name format");
+        }
+
+        final Map<String, String> result = new HashMap<>(3);
+        result.put("name", matcher.group(1));
+        result.put("version", matcher.group(2));
+
+        if (matcher.groupCount() > 2) {
+            result.put("suffix", matcher.group(3));
+        }
+
+        return result;
+    }
+
     /**
      * List of cache items. This list is populated during parsing the tree.
      */

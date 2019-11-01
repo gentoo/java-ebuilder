@@ -29,6 +29,18 @@ public class Config {
      */
     private Path ebuild;
     /**
+     * Ebuild name.
+     */
+    private String ebuildName;
+    /**
+     * Ebuild version excluding suffix.
+     */
+    private String ebuildVersion;
+    /**
+     * Ebuild version suffix (-r).
+     */
+    private String ebuildVersionSuffix;
+    /**
      * Writer for errors.
      */
     private final PrintWriter errorWriter;
@@ -142,6 +154,60 @@ public class Config {
      */
     public void setEbuild(final Path ebuild) {
         this.ebuild = ebuild;
+    }
+
+    /**
+     * Getter for {@link #ebuildName}.
+     *
+     * @return {@link #ebuildName}
+     */
+    public String getEbuildName() {
+        return ebuildName;
+    }
+
+    /**
+     * Setter for {@link #ebuildName}.
+     *
+     * @param ebuildName {@link #ebuildName}
+     */
+    public void setEbuildName(final String ebuildName) {
+        this.ebuildName = ebuildName;
+    }
+
+    /**
+     * Getter for {@link #ebuildVersion}.
+     *
+     * @return {@link #ebuildVersion}
+     */
+    public String getEbuildVersion() {
+        return ebuildVersion;
+    }
+
+    /**
+     * Setter for {@link #ebuildVersion}.
+     *
+     * @param ebuildVersion {@link #ebuildVersion}
+     */
+    public void setEbuildVersion(final String ebuildVersion) {
+        this.ebuildVersion = ebuildVersion;
+    }
+
+    /**
+     * Getter for {@link #ebuildVersionSuffix}.
+     *
+     * @return {@link #ebuildVersionSuffix}
+     */
+    public String getEbuildVersionSuffix() {
+        return ebuildVersionSuffix;
+    }
+
+    /**
+     * Setter for {@link #ebuildVersionSuffix}.
+     *
+     * @param ebuildVersionSuffix {@link #ebuildVersionSuffix}
+     */
+    public void setEbuildVersionSuffix(final String ebuildVersionSuffix) {
+        this.ebuildVersionSuffix = ebuildVersionSuffix;
     }
 
     /**
