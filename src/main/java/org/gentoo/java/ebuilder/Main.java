@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.Map;
 import org.gentoo.java.ebuilder.maven.MavenCache;
@@ -272,10 +273,10 @@ public class Main {
             config.setEbuildVersion(result.get("version"));
             config.setEbuildVersionSuffix(result.get("suffix"));
 
-            config.getStdoutWriter().println("Parsed ebuild file name - name: "
-                    + config.getEbuildName() + " version: "
-                    + config.getEbuildVersion() + " suffix: "
-                    + config.getEbuildVersionSuffix());
+            config.getStdoutWriter().println(MessageFormat.format("Parsed "
+                    + "ebuild file name - name: {0} version: {1} suffix: {2}",
+                    config.getEbuildName(), config.getEbuildVersion(),
+                    config.getEbuildVersionSuffix()));
         } catch (final IllegalArgumentException ex) {
             config.getStdoutWriter().println("Cannot parse ebuild file name");
 
