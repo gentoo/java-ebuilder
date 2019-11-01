@@ -28,7 +28,7 @@ public class PortageParser {
     /**
      * Cache version.
      */
-    public static final String CACHE_VERSION = "1.0";
+    public static final String CACHE_VERSION = "1.1";
     /**
      * Current ant utilities eclass name.
      */
@@ -117,6 +117,29 @@ public class PortageParser {
      */
     private final List<CacheItem> cacheItems = new ArrayList<>(40_000);
     /**
+     * Count of ebuilds inheriting {@link #ECLASS_ANT_TASKS} as the main eclass.
+     */
+    private int eclassAntTasksCount;
+    /**
+     * Count of ebuilds inheriting {@link #ECLASS_JAVA_PKG} as the main eclass.
+     */
+    private int eclassJavaPkgCount;
+    /**
+     * Count of ebuilds inheriting {@link #ECLASS_JAVA_PKG_OPT} as the main
+     * eclass.
+     */
+    private int eclassJavaPkgOptCount;
+    /**
+     * Count of ebuilds inheriting {@link #ECLASS_JAVA_PKG_SIMPLE} as the main
+     * eclass.
+     */
+    private int eclassJavaPkgSimpleCount;
+    /**
+     * Count of ebuilds inheriting {@link #ECLASS_JAVA_UTILS} as the main
+     * eclass.
+     */
+    private int eclassJavaUtilsCount;
+    /**
      * Number of processed categories. Updated during parsing the tree.
      */
     private int processedCategories;
@@ -141,6 +164,11 @@ public class PortageParser {
         processedCategories = 0;
         processedPackages = 0;
         processedEbuilds = 0;
+        eclassAntTasksCount = 0;
+        eclassJavaPkgCount = 0;
+        eclassJavaPkgOptCount = 0;
+        eclassJavaPkgSimpleCount = 0;
+        eclassJavaUtilsCount = 0;
 
         config.getStdoutWriter().println("Parsing portage tree @ "
                 + config.getPortageTree() + " ...");
@@ -150,9 +178,14 @@ public class PortageParser {
 
         config.getStdoutWriter().println(MessageFormat.format(
                 "Parsed {0} categories {1} packages {2} ebuilds in {3}ms and "
-                + "found {4} java ebuilds",
+                + "found {4} java ebuilds (main java eclass: {5} = {6}, "
+                + "{7} = {8}, {9} = {10}, {11} = {12}, {13} = {14})",
                 processedCategories, processedPackages, processedEbuilds,
-                endTimestamp - startTimestamp, cacheItems.size()));
+                endTimestamp - startTimestamp, cacheItems.size(),
+                ECLASS_ANT_TASKS, eclassAntTasksCount, ECLASS_JAVA_PKG,
+                eclassJavaPkgCount, ECLASS_JAVA_PKG_OPT, eclassJavaPkgOptCount,
+                ECLASS_JAVA_PKG_SIMPLE, eclassJavaPkgSimpleCount,
+                ECLASS_JAVA_UTILS, eclassJavaUtilsCount));
 
         config.getStdoutWriter().print("Writing cache file...");
         writeCacheFile(config);
@@ -325,7 +358,25 @@ public class PortageParser {
         }
 
         cacheItems.add(new CacheItem(category, pkg, version, slot, useFlag,
-                groupId, artifactId, mavenVersion));
+                groupId, artifactId, mavenVersion, eclass));
+
+        switch (eclass) {
+            case ECLASS_ANT_TASKS:
+                eclassAntTasksCount++;
+                break;
+            case ECLASS_JAVA_PKG:
+                eclassJavaPkgCount++;
+                break;
+            case ECLASS_JAVA_PKG_OPT:
+                eclassJavaPkgOptCount++;
+                break;
+            case ECLASS_JAVA_PKG_SIMPLE:
+                eclassJavaPkgSimpleCount++;
+                break;
+            case ECLASS_JAVA_UTILS:
+                eclassJavaUtilsCount++;
+                break;
+        }
     }
 
     /**
@@ -437,7 +488,7 @@ public class PortageParser {
                 Charset.forName("UTF-8"))) {
             writer.write(CACHE_VERSION);
             writer.write("\n#category:pkg:version:slot:useFlag:groupId:"
-                    + "artifactId:mavenVersion\n");
+                    + "artifactId:mavenVersion:javaEclass\n");
 
             for (final CacheItem cacheItem : cacheItems) {
                 writer.write(cacheItem.getCategory());
@@ -450,18 +501,17 @@ public class PortageParser {
                 writer.write(':');
                 writer.write(cacheItem.getUseFlag() == null
                         ? "" : cacheItem.getUseFlag());
-
-                if (cacheItem.getGroupId() != null) {
-                    writer.write(':');
-                    writer.write(cacheItem.getGroupId());
-                    writer.write(':');
-                    writer.write(cacheItem.getArtifactId());
-
-                    if (cacheItem.getMavenVersion() != null) {
-                        writer.write(':');
-                        writer.write(cacheItem.getMavenVersion());
-                    }
-                }
+                writer.write(':');
+                writer.write(cacheItem.getGroupId() == null
+                        ? "" : cacheItem.getGroupId());
+                writer.write(':');
+                writer.write(cacheItem.getArtifactId() == null
+                        ? "" : cacheItem.getArtifactId());
+                writer.write(':');
+                writer.write(cacheItem.getMavenVersion() == null
+                        ? "" : cacheItem.getMavenVersion());
+                writer.write(':');
+                writer.write(cacheItem.getJavaEclass());
 
                 writer.write('\n');
             }

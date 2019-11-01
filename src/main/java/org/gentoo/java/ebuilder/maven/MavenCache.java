@@ -102,7 +102,10 @@ public class MavenCache {
                 new FileReader(config.getCacheFile().toFile()))) {
             String line = reader.readLine();
 
-            if (!PortageParser.CACHE_VERSION.equals(line)) {
+            if ("1.0".equals(line)) {
+                config.getStdoutWriter().print("(warning: format is not "
+                        + "up-to-date, consider refreshing the cache)...");
+            } else if (!PortageParser.CACHE_VERSION.equals(line)) {
                 config.getErrorWriter().println("ERROR: Unsupported version of "
                         + "cache. Please refresh the cache using command line "
                         + "switch --refresh-cache.");

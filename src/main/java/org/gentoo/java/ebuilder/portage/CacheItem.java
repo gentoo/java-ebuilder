@@ -20,6 +20,10 @@ public class CacheItem {
      */
     private final String groupId;
     /**
+     * Main Java eclass inherited.
+     */
+    private final String javaEclass;
+    /**
      * Maven version (of package jar).
      */
     private final String mavenVersion;
@@ -56,11 +60,12 @@ public class CacheItem {
      * @param groupId      {@link #groupId}
      * @param artifactId   {@link #artifactId}
      * @param mavenVersion {@link #mavenVersion}
+     * @param javaEclass   {@link #javaEclass}
      */
     public CacheItem(final String category, final String pkg,
             final String version, final String slot, final String useFlag,
             final String groupId, final String artifactId,
-            final String mavenVersion) {
+            final String mavenVersion, final String javaEclass) {
         this.category = category;
         this.pkg = pkg;
         this.version = version;
@@ -69,6 +74,7 @@ public class CacheItem {
         this.groupId = groupId;
         this.artifactId = artifactId;
         this.mavenVersion = mavenVersion;
+        this.javaEclass = javaEclass;
 
         parsedMavenVersion = mavenVersion == null
                 ? null : new MavenVersion(mavenVersion);
@@ -95,13 +101,19 @@ public class CacheItem {
             }
 
             if (parts.length > 5) {
-                groupId = parts[5];
-                artifactId = parts[6];
-                mavenVersion = parts[7];
+                groupId = parts[5].isEmpty() ? null : parts[5];
+                artifactId = parts[6].isEmpty() ? null : parts[6];
+                mavenVersion = parts[7].isEmpty() ? null : parts[7];
             } else {
                 groupId = null;
                 artifactId = null;
                 mavenVersion = null;
+            }
+
+            if (parts.length > 8) {
+                javaEclass = parts[8].isEmpty() ? null : parts[8];
+            } else {
+                javaEclass = null;
             }
         } catch (final ArrayIndexOutOfBoundsException ex) {
             throw new RuntimeException("Failed to parse cache line: " + line,
@@ -137,6 +149,15 @@ public class CacheItem {
      */
     public String getGroupId() {
         return groupId;
+    }
+
+    /**
+     * Getter for {@link #javaEclass}.
+     *
+     * @return {@link #javaEclass}
+     */
+    public String getJavaEclass() {
+        return javaEclass;
     }
 
     /**
