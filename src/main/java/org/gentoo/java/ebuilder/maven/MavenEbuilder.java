@@ -484,9 +484,11 @@ public class MavenEbuilder {
                               final PrintWriter writer) {
         writer.println();
         writer.print("IUSE=\"doc source");
+
         if (mavenProject.hasTests()) {
             writer.print(" test");
         }
+
         writer.println('"');
         writer.println();
         writer.println("inherit java-pkg-2 java-pkg-simple");
