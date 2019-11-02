@@ -126,6 +126,9 @@ public class Main {
         } else if (config.getDownloadUri() != null) {
             config.getErrorWriter().println("WARNING: Download URI is used "
                     + "only when generating ebuild.");
+        } else if (config.isDumpProjects()) {
+            config.getErrorWriter().println("WARNING: Dumping of projects can "
+                    + "be used only when generating ebuild.");
         } else if (config.getEbuild() != null) {
             config.getErrorWriter().println(
                     "WARNING: Ebuild is used only when "
@@ -155,6 +158,23 @@ public class Main {
         }
     }
 
+    private static void dumpMavenProjects(final Config config,
+            final List<MavenProject> mavenProjects) {
+        int i = 0;
+
+        for (final MavenProject mavenProject : mavenProjects) {
+            config.getStdoutWriter().println(MessageFormat.format(
+                    "\n===== PROJECT {0} DUMP START =====", i));
+            mavenProject.dump(config.getStdoutWriter());
+            config.getStdoutWriter().println(MessageFormat.format(
+                    "===== PROJECT {0} DUMP END =====", i));
+
+            i++;
+        }
+
+        config.getStdoutWriter().println();
+    }
+
     /**
      * Processed generation of ebuild.
      *
@@ -169,6 +189,10 @@ public class Main {
         final MavenParser mavenParser = new MavenParser();
         final List<MavenProject> mavenProjects
                 = mavenParser.parsePomFiles(config, mavenCache);
+
+        if (config.isDumpProjects()) {
+            dumpMavenProjects(config, mavenProjects);
+        }
 
         final MavenEbuilder mavenEbuilder = new MavenEbuilder();
         mavenEbuilder.generateEbuild(config, mavenProjects, mavenCache);
@@ -197,6 +221,10 @@ public class Main {
                                 + " is not valid.");
                     }
 
+                    break;
+                case "--dump-projects":
+                case "-d":
+                    config.setDumpProjects(true);
                     break;
                 case "--ebuild":
                 case "-e":

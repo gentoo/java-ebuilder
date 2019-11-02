@@ -1,5 +1,6 @@
 package org.gentoo.java.ebuilder.maven;
 
+import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -119,6 +120,80 @@ public class MavenProject {
      */
     public void addTestResourceDirectory(final Path path) {
         testResourceDirectories.add(path);
+    }
+
+    /**
+     * Outputs project properties to the writer.
+     *
+     * @param writer writer
+     */
+    public void dump(final PrintWriter writer) {
+        writer.print("POM file: ");
+        writer.println(pomFile);
+        writer.print("groupId: ");
+        writer.println(groupId);
+        writer.print("artifactId: ");
+        writer.println(artifactId);
+        writer.print("version: ");
+        writer.println(version);
+        writer.print("description: ");
+        writer.println(description);
+        writer.print("homepage: ");
+        writer.println(homepage);
+        writer.print("mainClass: ");
+        writer.println(mainClass);
+        writer.print("sourceVersion: ");
+        writer.println(sourceVersion);
+        writer.print("targetVersion: ");
+        writer.println(targetVersion);
+        writer.print("sourceEncoding: ");
+        writer.println(sourceEncoding);
+        writer.print("sourceDirectory: ");
+        writer.println(sourceDirectory);
+        writer.print("hasResources: ");
+        writer.println(hasResources);
+
+        writer.print("resourceDirectories:");
+
+        if (resourceDirectories != null) {
+            resourceDirectories.forEach((resourceDirectory) -> {
+                writer.print("  ");
+                writer.println(resourceDirectory);
+            });
+        }
+
+        writer.print("hasTests: ");
+        writer.println(hasTests);
+        writer.print("testSourceDirectory: ");
+        writer.println(testSourceDirectory);
+        writer.print("hasTestResources: ");
+        writer.println(hasTestResources);
+
+        writer.println("testResourceDirectories:");
+
+        testResourceDirectories.forEach((testResourceDirectory) -> {
+            writer.print("  ");
+            writer.println(testResourceDirectory);
+        });
+
+        writer.println("dependencies:");
+
+        if (dependencies != null) {
+            dependencies.forEach((dependency) -> {
+                writer.print("\n  groupId: ");
+                writer.println(dependency.getGroupId());
+                writer.print("  artifactId: ");
+                writer.println(dependency.getArtifactId());
+                writer.print("  mavenVersion: ");
+                writer.println(dependency.getMavenVersion());
+                writer.print("  scope: ");
+                writer.println(dependency.getScope());
+                writer.print("  systemDependency: ");
+                writer.println(dependency.getSystemDependency());
+                writer.print("  version: ");
+                writer.println(dependency.getVersion());
+            });
+        }
     }
 
     /**

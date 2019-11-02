@@ -25,6 +25,10 @@ public class Config {
      */
     private URI downloadUri;
     /**
+     * Whether to output information about parsed projects.
+     */
+    private boolean dumpProjects;
+    /**
      * Path to ebuild file that should be generated.
      */
     private Path ebuild;
@@ -325,6 +329,24 @@ public class Config {
      */
     public void setWorkdir(final Path workdir) {
         this.workdir = workdir;
+    }
+
+    /**
+     * Getter for {@link #dumpProjects}.
+     *
+     * @return {@link #dumpProjects}
+     */
+    public boolean isDumpProjects() {
+        return dumpProjects;
+    }
+
+    /**
+     * Setter for {@link #dumpProjects}.
+     *
+     * @param dumpProjects {@link #dumpProjects}
+     */
+    public void setDumpProjects(final boolean dumpProjects) {
+        this.dumpProjects = dumpProjects;
     }
 
     /**
