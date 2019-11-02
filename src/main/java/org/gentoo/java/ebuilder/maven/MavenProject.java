@@ -151,9 +151,9 @@ public class MavenProject {
         writer.print("sourceDirectory: ");
         writer.println(sourceDirectory);
         writer.print("hasResources: ");
-        writer.println(hasResources);
+        writer.println(hasResources());
 
-        writer.print("resourceDirectories:");
+        writer.println("resourceDirectories:");
 
         if (resourceDirectories != null) {
             resourceDirectories.forEach((resourceDirectory) -> {
@@ -163,11 +163,11 @@ public class MavenProject {
         }
 
         writer.print("hasTests: ");
-        writer.println(hasTests);
+        writer.println(hasTests());
         writer.print("testSourceDirectory: ");
         writer.println(testSourceDirectory);
         writer.print("hasTestResources: ");
-        writer.println(hasTestResources);
+        writer.println(hasTestResources());
 
         writer.println("testResourceDirectories:");
 
