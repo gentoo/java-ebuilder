@@ -226,6 +226,16 @@ public class MavenEbuilder {
         return result;
     }
 
+    private String replaceWithVars(final String string, final Config config) {
+        final String pString
+                = config.getEbuildName() + '-' + config.getEbuildVersion();
+
+        return string.
+                replace(pString, "${P}").
+                replace(config.getEbuildName(), "${PN}").
+                replace(config.getEbuildVersion(), "${PV}");
+    }
+
     /**
      * Writes command that was used to create skeleton of the ebuild.
      *
@@ -551,7 +561,8 @@ public class MavenEbuilder {
         writer.println('"');
 
         writer.print("SRC_URI=\"");
-        writer.print(config.getDownloadUri());
+        writer.print(
+                replaceWithVars(config.getDownloadUri().toString(), config));
         writer.println('"');
 
         writer.print("LICENSE=\"");
@@ -653,7 +664,9 @@ public class MavenEbuilder {
                     writer.print(':');
                 }
 
-                writer.print(config.getWorkdir().relativize(resources));
+                writer.print(replaceWithVars(
+                        config.getWorkdir().relativize(resources).toString(),
+                        config));
             }
 
             writer.println('"');
@@ -661,8 +674,8 @@ public class MavenEbuilder {
 
         if (mavenProject.hasTests()) {
             writer.print("JAVA_TEST_SRC_DIR=\"");
-            writer.print(config.getWorkdir().relativize(
-                    mavenProject.getTestSourceDirectory()));
+            writer.print(replaceWithVars(config.getWorkdir().relativize(
+                    mavenProject.getTestSourceDirectory()).toString(), config));
             writer.println('"');
 
             if (mavenProject.hasTestResources()) {
@@ -678,7 +691,8 @@ public class MavenEbuilder {
                         writer.print(':');
                     }
 
-                    writer.print(config.getWorkdir().relativize(resources));
+                    writer.print(replaceWithVars(config.getWorkdir().
+                            relativize(resources).toString(), config));
                 }
 
                 writer.println('"');
