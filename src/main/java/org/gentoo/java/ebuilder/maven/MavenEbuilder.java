@@ -493,7 +493,7 @@ public class MavenEbuilder {
     private void writeInherit(final MavenProject mavenProject,
                               final PrintWriter writer) {
         writer.println();
-        writer.print("IUSE=\"doc source");
+        writer.print("JAVA_PKG_IUSE=\"doc source");
 
         if (mavenProject.hasTests()) {
             writer.print(" test");
