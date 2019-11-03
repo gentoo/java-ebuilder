@@ -180,7 +180,7 @@ public class MavenProject {
 
         if (dependencies != null) {
             dependencies.forEach((dependency) -> {
-                writer.print("\n  groupId: ");
+                writer.print("- groupId: ");
                 writer.println(dependency.getGroupId());
                 writer.print("  artifactId: ");
                 writer.println(dependency.getArtifactId());
