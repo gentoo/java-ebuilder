@@ -399,6 +399,7 @@ public class MavenEbuilder {
         writer.print("\t>=virtual/jdk-");
         writer.print(getMinSourceVersion(
                 mavenProjects, config.getForceMinJavaVersion()));
+        writer.print(":*");
 
         if (config.getDownloadUri() != null && config.getDownloadUri().
                 toString().matches("^.*?\\.(jar|zip)$")) {
@@ -440,6 +441,7 @@ public class MavenEbuilder {
         writer.print("\t>=virtual/jre-");
         writer.print(getMinTargetVersion(
                 mavenProjects, config.getForceMinJavaVersion()));
+        writer.print(":*");
 
         if (!runtimeDependencies.isEmpty()) {
             runtimeDependencies.stream().forEach((dependency) -> {
