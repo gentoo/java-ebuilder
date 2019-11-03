@@ -1,25 +1,27 @@
 Usage: java-ebuilder <args>
 
 Generating ebuild:
---download-uri|-u <uri>     uri that goes to SRC_URI
---dump-projects|-d          outputs information about parsed projects (useful
-                            for debugging)
---ebuild|-e <file>          path to ebuild that should be created
---generate-ebuild|-g        generates ebuild from pom.xml
---keywords|-k <keywords>    arch keywords
---license|-l <license>      license name
---pom|-p <file>             path to pom.xml that should be parsed, the path must
-                            be relative to workdir (can be specified multiple
-                            times)
---slot|-s  <slot>           SLOT number
---workdir|-w <dir>          path to ebuild workdir (${WORKDIR}, default is
-                            current directory)
+--download-uri|-u <uri>            uri that goes to SRC_URI
+--dump-projects|-d                 outputs information about parsed projects
+                                   (useful for debugging)
+--ebuild|-e <file>                 path to ebuild that should be created
+--force-min-java-version <version> force minimum JDK/JRE version in dependencies
+--generate-ebuild|-g               generates ebuild from pom.xml
+--keywords|-k <keywords>           arch keywords
+--license|-l <license>             license name
+--pom|-p <file>                    path to pom.xml that should be parsed,
+                                   the path must be relative to workdir (can be
+                                   specified multiple times)
+--slot|-s  <slot>                  SLOT number
+--workdir|-w <dir>                 path to ebuild workdir (${WORKDIR}, default
+                                   is current directory)
 
 Refreshing cache:
---portage-tree|-t           path to portage tree that should be parsed when
-                            refreshing cache (default is /usr/portage)
---refresh-cache|-c          refreshes java ebuild cache
+--portage-tree|-t                  path to portage tree that should be parsed
+                                   when refreshing cache (default is
+                                   /usr/portage)
+--refresh-cache|-c                 refreshes java ebuild cache
 
 Common:
---cache-file		    location of cache file (default is
-                            ~/.java-ebuilder/cache)
+--cache-file		           location of cache file (default is
+                                   ~/.java-ebuilder/cache)

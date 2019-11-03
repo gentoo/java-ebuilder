@@ -11,6 +11,7 @@ import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Map;
+import org.gentoo.java.ebuilder.maven.JavaVersion;
 import org.gentoo.java.ebuilder.maven.MavenCache;
 import org.gentoo.java.ebuilder.maven.MavenEbuilder;
 import org.gentoo.java.ebuilder.maven.MavenParser;
@@ -132,6 +133,9 @@ public class Main {
         } else if (config.getEbuild() != null) {
             config.getErrorWriter().println(
                     "WARNING: Ebuild is used only when generating ebuild.");
+        } else if (config.getForceMinJavaVersion() != null) {
+            config.getErrorWriter().println("WARNING: Forcing minimum JDK/JRE "
+                    + "version applies only when generating ebuild.");
         } else if (config.getKeywords() != null) {
             config.getErrorWriter().println("WARNING: Keywords are used only "
                     + "when generating ebuild.");
@@ -230,6 +234,10 @@ public class Main {
                     i++;
                     config.setEbuild(Paths.get(args[i]).toAbsolutePath().
                             normalize());
+                    break;
+                case "--force-min-java-version":
+                    i++;
+                    config.setForceMinJavaVersion(new JavaVersion(args[i]));
                     break;
                 case "--generate-ebuild":
                 case "-g":

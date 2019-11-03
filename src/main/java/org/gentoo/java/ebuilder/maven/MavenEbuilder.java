@@ -144,17 +144,24 @@ public class MavenEbuilder {
      * Retrieves minimum source version from the maven projects.
      *
      * @param mavenProjects list of maven projects
+     * @param forceMinVersion optional minimum version to force
      *
      * @return minimum source version
      */
-    private String getMinSourceVersion(final List<MavenProject> mavenProjects) {
-        String result = null;
+    private JavaVersion getMinSourceVersion(
+            final List<MavenProject> mavenProjects,
+            final JavaVersion forceMinVersion) {
+        JavaVersion result = null;
 
         for (final MavenProject mavenProject : mavenProjects) {
             if (result == null || mavenProject.getSourceVersion().compareTo(
                     result) < 0) {
                 result = mavenProject.getSourceVersion();
             }
+        }
+
+        if (forceMinVersion != null && forceMinVersion.compareTo(result) > 0) {
+            return forceMinVersion;
         }
 
         return result;
@@ -164,17 +171,24 @@ public class MavenEbuilder {
      * Retrieves minimum target version from the maven projects.
      *
      * @param mavenProjects list of maven projects
+     * @param forceMinVersion optional minimum version to force
      *
      * @return minimum target version
      */
-    private String getMinTargetVersion(final List<MavenProject> mavenProjects) {
-        String result = null;
+    private JavaVersion getMinTargetVersion(
+            final List<MavenProject> mavenProjects,
+            final JavaVersion forceMinVersion) {
+        JavaVersion result = null;
 
         for (final MavenProject mavenProject : mavenProjects) {
             if (result == null || mavenProject.getTargetVersion().compareTo(
                     result) < 0) {
                 result = mavenProject.getTargetVersion();
             }
+        }
+
+        if (forceMinVersion != null && forceMinVersion.compareTo(result) > 0) {
+            return forceMinVersion;
         }
 
         return result;
@@ -284,6 +298,11 @@ public class MavenEbuilder {
             writer.print(config.getEbuild().getFileName());
         }
 
+        if (config.getForceMinJavaVersion() != null) {
+            writer.print(" --force-min-java-version ");
+            writer.print(config.getForceMinJavaVersion());
+        }
+
         writer.println();
     }
 
@@ -378,7 +397,8 @@ public class MavenEbuilder {
 
         writer.println();
         writer.print("\t>=virtual/jdk-");
-        writer.print(getMinSourceVersion(mavenProjects));
+        writer.print(getMinSourceVersion(
+                mavenProjects, config.getForceMinJavaVersion()));
 
         if (config.getDownloadUri() != null && config.getDownloadUri().
                 toString().matches("^.*?\\.(jar|zip)$")) {
@@ -418,7 +438,8 @@ public class MavenEbuilder {
 
         writer.println();
         writer.print("\t>=virtual/jre-");
-        writer.print(getMinTargetVersion(mavenProjects));
+        writer.print(getMinTargetVersion(
+                mavenProjects, config.getForceMinJavaVersion()));
 
         if (!runtimeDependencies.isEmpty()) {
             runtimeDependencies.stream().forEach((dependency) -> {

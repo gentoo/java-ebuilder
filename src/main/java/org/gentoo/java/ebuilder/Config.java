@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.gentoo.java.ebuilder.maven.JavaVersion;
 
 /**
  * Container for command line configuration.
@@ -48,6 +49,11 @@ public class Config {
      * Writer for errors.
      */
     private final PrintWriter errorWriter;
+    /**
+     * JDK/JRE version that will be used if version in POM files is lower than
+     * this one.
+     */
+    private JavaVersion forceMinJavaVersion;
     /**
      * Whether ebuild should be generated.
      */
@@ -221,6 +227,24 @@ public class Config {
      */
     public PrintWriter getErrorWriter() {
         return errorWriter;
+    }
+
+    /**
+     * Getter for {@link #forceMinJavaVersion}.
+     *
+     * @return {@link #forceMinJavaVersion}
+     */
+    public JavaVersion getForceMinJavaVersion() {
+        return forceMinJavaVersion;
+    }
+
+    /**
+     * Setter for {@link #forceMinJavaVersion}.
+     *
+     * @param forceMinJavaVersion {@link #forceMinJavaVersion}
+     */
+    public void setForceMinJavaVersion(final JavaVersion forceMinJavaVersion) {
+        this.forceMinJavaVersion = forceMinJavaVersion;
     }
 
     /**
