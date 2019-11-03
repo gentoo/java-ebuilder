@@ -319,41 +319,38 @@ public class MavenEbuilder {
                 }
 
                 if (!mavenProject.getCommonDependencies().isEmpty()) {
-                    writeDependenciesInfo(writer, mavenProject.getPomFile(),
+                    writeDependenciesInfo(config, writer,
+                            mavenProject.getPomFile(),
                             mavenProject.getCommonDependencies(), null);
                 }
 
-                if (mavenProject.getTargetVersion()!=null) {
-                    writeDependenciesInfo(writer, mavenProject.getPomFile(),
+                if (mavenProject.getTargetVersion() != null) {
+                    writeDependenciesInfo(config, writer,
+                            mavenProject.getPomFile(),
                             mavenProject.getTestDependencies(), "test?");
                 }
 
                 hasCDepend = true;
             }
 
-            writer.print("CDEPEND=\"");
+            writer.println("\nCDEPEND=\"");
 
             if (!commonDependencies.isEmpty()) {
-                commonDependencies.stream().
-                        forEach((dependency) -> {
-                            writer.println();
-                            writer.print('\t');
-                            writer.print(dependency);
-                        });
+                commonDependencies.stream().forEach((dependency) -> {
+                    writer.print('\t');
+                    writer.println(dependency);
+                });
             }
 
             if (!testDependencies.isEmpty()) {
-                writer.println();
                 writer.println("\ttest? (");
 
-                testDependencies.stream().
-                        forEach((dependency) -> {
-                            writer.println();
-                            writer.print("\t\t");
-                            writer.print(dependency);
-                        });
+                testDependencies.stream().forEach((dependency) -> {
+                    writer.print("\t\t");
+                    writer.println(dependency);
+                });
 
-                writer.print("\t)");
+                writer.println("\t)");
             }
 
             writer.println('"');
@@ -362,10 +359,11 @@ public class MavenEbuilder {
         if (!compileDependencies.isEmpty()) {
             writer.println("# Compile dependencies");
 
-            mavenProjects.stream().filter((mavenProject) -> (!mavenProject.
-                    getCompileDependencies().isEmpty()))
+            mavenProjects.stream().filter((mavenProject) ->
+                    (!mavenProject.getCompileDependencies().isEmpty()))
                     .forEach((mavenProject) -> {
-                        writeDependenciesInfo(writer, mavenProject.getPomFile(),
+                        writeDependenciesInfo(config, writer,
+                                mavenProject.getPomFile(),
                                 mavenProject.getCompileDependencies(), null);
                     });
         } else {
@@ -389,12 +387,11 @@ public class MavenEbuilder {
         }
 
         if (!compileDependencies.isEmpty()) {
-            compileDependencies.stream().
-                    forEach((dependency) -> {
-                        writer.println();
-                        writer.print('\t');
-                        writer.print(dependency);
-                    });
+            compileDependencies.stream().forEach((dependency) -> {
+                writer.println();
+                writer.print('\t');
+                writer.println(dependency);
+            });
         }
 
         writer.println('"');
@@ -405,7 +402,8 @@ public class MavenEbuilder {
             mavenProjects.stream().filter((mavenProject) -> (!mavenProject.
                     getRuntimeDependencies().isEmpty()))
                     .forEach((mavenProject) -> {
-                        writeDependenciesInfo(writer, mavenProject.getPomFile(),
+                        writeDependenciesInfo(config, writer,
+                                mavenProject.getPomFile(),
                                 mavenProject.getRuntimeDependencies(), null);
                     });
         } else {
@@ -423,12 +421,11 @@ public class MavenEbuilder {
         writer.print(getMinTargetVersion(mavenProjects));
 
         if (!runtimeDependencies.isEmpty()) {
-            runtimeDependencies.stream().
-                    forEach((dependency) -> {
-                        writer.println();
-                        writer.print('\t');
-                        writer.print(dependency);
-                    });
+            runtimeDependencies.stream().forEach((dependency) -> {
+                writer.println();
+                writer.print('\t');
+                writer.println(dependency);
+            });
         }
 
         writer.println('"');
@@ -437,16 +434,17 @@ public class MavenEbuilder {
     /**
      * Writes dependencies information to the ebuild.
      *
+     * @param config       application configuration
      * @param writer       ebuild writer
      * @param pomFile      path to pom file
      * @param dependencies list of dependencies
      * @param useFlag      optional USE flag including question mark
      */
-    private void writeDependenciesInfo(final PrintWriter writer,
-            final Path pomFile, final List<MavenDependency> dependencies,
-            final String useFlag) {
+    private void writeDependenciesInfo(final Config config,
+            final PrintWriter writer, final Path pomFile,
+            final List<MavenDependency> dependencies, final String useFlag) {
         writer.print("# POM: ");
-        writer.println(pomFile);
+        writer.println(replaceWithVars(pomFile.toString(), config));
 
         dependencies.stream().forEach((dependency) -> {
             writer.print("# ");
