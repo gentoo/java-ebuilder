@@ -618,6 +618,12 @@ public class MavenEbuilder {
             final MavenProject mavenProject, final PrintWriter writer) {
         writer.println();
 
+        if (!"UTF-8".equals(mavenProject.getSourceEncoding())) {
+            writer.print("JAVA_ENCODING=\"");
+            writer.print(mavenProject.getSourceEncoding());
+            writer.println("\"\n");
+        }
+
         if (!mavenProject.getCommonDependencies().isEmpty()
                 || !mavenProject.getRuntimeDependencies().isEmpty()) {
             final List<MavenDependency> dependencies
@@ -638,77 +644,79 @@ public class MavenEbuilder {
             writer.println('"');
         }
 
-        if (!mavenProject.getTestDependencies().isEmpty()) {
-            writer.print("JAVA_GENTOO_TEST_CLASSPATH=\"");
-            writer.print(createClassPath(mavenProject.getTestDependencies()));
+        writer.print("JAVA_SRC_DIR=\"");
+        writer.print(replaceWithVars(config.getWorkdir().relativize(
+                mavenProject.getSourceDirectory()).toString(), config));
+        writer.println('"');
+
+        if (mavenProject.getMainClass() != null) {
+            writer.print("JAVA_MAIN_CLASS=\"");
+            writer.print(mavenProject.getMainClass());
             writer.println('"');
         }
 
+        if (mavenProject.hasResources()) {
+            writer.println("JAVA_RESOURCE_DIRS=(");
+
+            mavenProject.getResourceDirectories().forEach((directory) -> {
+                writer.print("\t\"");
+                writer.print(replaceWithVars(
+                        config.getWorkdir().relativize(directory).toString(),
+                        config));
+                writer.println('"');
+            });
+
+            writer.println(')');
+        }
+
         final String testingFramework = determineTestingFramework(mavenProject);
+        boolean firstTestVar = true;
 
         if (testingFramework != null) {
+            if (firstTestVar) {
+                writer.println();
+                firstTestVar = false;
+            }
+
             writer.print("JAVA_TESTING_FRAMEWORK=\"");
             writer.print(testingFramework);
             writer.println('"');
         }
 
-        if (mavenProject.hasResources()) {
-            writer.print("JAVA_RESOURCE_DIRS=\"");
-
-            boolean first = true;
-
-            for (final Path resources : mavenProject.getResourceDirectories()) {
-                if (first) {
-                    first = false;
-                } else {
-                    writer.print(':');
-                }
-
-                writer.print(replaceWithVars(
-                        config.getWorkdir().relativize(resources).toString(),
-                        config));
+        if (!mavenProject.getTestDependencies().isEmpty()) {
+            if (firstTestVar) {
+                writer.println();
+                firstTestVar = false;
             }
 
+            writer.print("JAVA_GENTOO_TEST_CLASSPATH=\"");
+            writer.print(createClassPath(mavenProject.getTestDependencies()));
             writer.println('"');
         }
 
         if (mavenProject.hasTests()) {
+            if (firstTestVar) {
+                writer.println();
+            }
+
             writer.print("JAVA_TEST_SRC_DIR=\"");
             writer.print(replaceWithVars(config.getWorkdir().relativize(
                     mavenProject.getTestSourceDirectory()).toString(), config));
             writer.println('"');
 
             if (mavenProject.hasTestResources()) {
-                writer.print("JAVA_TEST_RESOURCE_DIRS=\"");
+                writer.println("JAVA_TEST_RESOURCE_DIRS=(");
 
-                boolean first = true;
-
-                for (final Path resources : mavenProject.
-                        getTestResourceDirectories()) {
-                    if (first) {
-                        first = false;
-                    } else {
-                        writer.print(':');
-                    }
-
+                mavenProject.getTestResourceDirectories().
+                        forEach((directory) -> {
+                    writer.print("\t\"");
                     writer.print(replaceWithVars(config.getWorkdir().
-                            relativize(resources).toString(), config));
-                }
+                            relativize(directory).toString(), config));
+                    writer.println('"');
+                });
 
-                writer.println('"');
+                writer.println(')');
             }
-        }
-
-        if (!"UTF-8".equals(mavenProject.getSourceEncoding())) {
-            writer.print("JAVA_ENCODING=\"");
-            writer.print(mavenProject.getSourceEncoding());
-            writer.println('"');
-        }
-
-        if (mavenProject.getMainClass() != null) {
-            writer.print("JAVA_MAIN_CLASS=\"");
-            writer.print(mavenProject.getMainClass());
-            writer.println('"');
         }
     }
 
