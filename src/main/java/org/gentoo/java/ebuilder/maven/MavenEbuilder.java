@@ -38,11 +38,15 @@ public class MavenEbuilder {
             writeHeader(writer);
             writeCommand(config, writer);
             writeEAPI(writer);
-            MavenProject mp = mavenProjects.get(mavenProjects.size() - 1);
-            writeInherit(mp, writer);
-            // write the info from the last project as it is probably the one
-            // that depends on the rest
-            writePackageInfo(config, mp, writer);
+
+            /**
+             * Write the info from the last project as it is probably the one
+             * that depends on the rest.
+             */
+            final MavenProject mavenProject
+                    = mavenProjects.get(mavenProjects.size() - 1);
+            writeInherit(mavenProject, writer);
+            writePackageInfo(config, mavenProject, writer);
 
             writeDependencies(config, mavenProjects, writer);
             writeSourceDir(writer);
