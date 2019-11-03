@@ -68,11 +68,11 @@ public class MavenProject {
     /**
      * Source compile version.
      */
-    private String sourceVersion = "1.8";
+    private JavaVersion sourceVersion = new JavaVersion("1.8");
     /**
      * Target compile version.
      */
-    private String targetVersion = "1.8";
+    private JavaVersion targetVersion = new JavaVersion("1.8");
     /**
      * Test resource directories.
      */
@@ -382,7 +382,7 @@ public class MavenProject {
      *
      * @return {@link #sourceVersion}
      */
-    public String getSourceVersion() {
+    public JavaVersion getSourceVersion() {
         return sourceVersion;
     }
 
@@ -391,7 +391,7 @@ public class MavenProject {
      *
      * @param sourceVersion {@link #sourceVersion}
      */
-    public void setSourceVersion(final String sourceVersion) {
+    public void setSourceVersion(final JavaVersion sourceVersion) {
         this.sourceVersion = sourceVersion;
     }
 
@@ -400,7 +400,7 @@ public class MavenProject {
      *
      * @return {@link #targetVersion}
      */
-    public String getTargetVersion() {
+    public JavaVersion getTargetVersion() {
         return targetVersion;
     }
 
@@ -409,7 +409,7 @@ public class MavenProject {
      *
      * @param targetVersion {@link #targetVersion}
      */
-    public void setTargetVersion(final String targetVersion) {
+    public void setTargetVersion(final JavaVersion targetVersion) {
         this.targetVersion = targetVersion;
     }
 

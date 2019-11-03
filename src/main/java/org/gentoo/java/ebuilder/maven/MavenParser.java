@@ -208,7 +208,7 @@ public class MavenParser {
                     case "source":
                         if ("maven-compiler-plugin".equals(artifactId)) {
                             mavenProject.setSourceVersion(
-                                    reader.getElementText());
+                                    new JavaVersion(reader.getElementText()));
                         } else {
                             consumeElement(reader);
                         }
@@ -217,7 +217,7 @@ public class MavenParser {
                     case "target":
                         if ("maven-compiler-plugin".equals(artifactId)) {
                             mavenProject.setTargetVersion(
-                                    reader.getElementText());
+                                    new JavaVersion(reader.getElementText()));
                         } else {
                             consumeElement(reader);
                         }
@@ -572,10 +572,12 @@ public class MavenParser {
             if (reader.isStartElement()) {
                 switch (reader.getLocalName()) {
                     case "maven.compiler.source":
-                        mavenProject.setSourceVersion(reader.getElementText());
+                        mavenProject.setSourceVersion(
+                                new JavaVersion(reader.getElementText()));
                         break;
                     case "maven.compiler.target":
-                        mavenProject.setTargetVersion(reader.getElementText());
+                        mavenProject.setTargetVersion(
+                                new JavaVersion(reader.getElementText()));
                         break;
                     case "project.build.sourceEncoding":
                         mavenProject.setSourceEncoding(reader.getElementText());
