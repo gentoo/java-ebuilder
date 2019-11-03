@@ -131,8 +131,7 @@ public class Main {
                     + "be used only when generating ebuild.");
         } else if (config.getEbuild() != null) {
             config.getErrorWriter().println(
-                    "WARNING: Ebuild is used only when "
-                    + "generating ebuild.");
+                    "WARNING: Ebuild is used only when generating ebuild.");
         } else if (config.getKeywords() != null) {
             config.getErrorWriter().println("WARNING: Keywords are used only "
                     + "when generating ebuild.");
