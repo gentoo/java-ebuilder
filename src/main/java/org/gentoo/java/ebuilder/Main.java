@@ -306,7 +306,7 @@ public class Main {
                     config.getEbuildName(), config.getEbuildVersion(),
                     config.getEbuildVersionSuffix()));
         } catch (final IllegalArgumentException ex) {
-            config.getStdoutWriter().println("Cannot parse ebuild file name");
+            config.getErrorWriter().println("Cannot parse ebuild file name");
 
             Runtime.getRuntime().exit(1);
         }
