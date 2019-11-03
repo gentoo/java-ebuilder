@@ -15,7 +15,7 @@ public class JavaVersion {
      * Pattern for parsing Java versionNumber.
      */
     private static final Pattern PATTERN_VERSION
-            = Pattern.compile("^(?:1\\.)(\\d+)$");
+            = Pattern.compile("^(?:1\\.)?(\\d+)$");
     /**
      * Java versionNumber number.
      */
