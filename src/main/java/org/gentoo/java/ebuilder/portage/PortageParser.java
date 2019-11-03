@@ -11,11 +11,14 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.gentoo.java.ebuilder.Config;
 
 /**
@@ -34,21 +37,9 @@ public class PortageParser {
      */
     private static final String ECLASS_ANT_TASKS = "ant-tasks";
     /**
-     * Current java package eclass name.
-     */
-    private static final String ECLASS_JAVA_PKG = "java-pkg-2";
-    /**
      * Current java optional package eclass name.
      */
     private static final String ECLASS_JAVA_PKG_OPT = "java-pkg-opt-2";
-    /**
-     * Current java simple package eclass name.
-     */
-    private static final String ECLASS_JAVA_PKG_SIMPLE = "java-pkg-simple";
-    /**
-     * Current java utilities eclass name.
-     */
-    private static final String ECLASS_JAVA_UTILS = "java-utils-2";
     /**
      * Pattern for parsing ebuild file name.
      */
@@ -117,28 +108,9 @@ public class PortageParser {
      */
     private final List<CacheItem> cacheItems = new ArrayList<>(40_000);
     /**
-     * Count of ebuilds inheriting {@link #ECLASS_ANT_TASKS} as the main eclass.
+     * Used for cellecting counts of java eclasses.
      */
-    private int eclassAntTasksCount;
-    /**
-     * Count of ebuilds inheriting {@link #ECLASS_JAVA_PKG} as the main eclass.
-     */
-    private int eclassJavaPkgCount;
-    /**
-     * Count of ebuilds inheriting {@link #ECLASS_JAVA_PKG_OPT} as the main
-     * eclass.
-     */
-    private int eclassJavaPkgOptCount;
-    /**
-     * Count of ebuilds inheriting {@link #ECLASS_JAVA_PKG_SIMPLE} as the main
-     * eclass.
-     */
-    private int eclassJavaPkgSimpleCount;
-    /**
-     * Count of ebuilds inheriting {@link #ECLASS_JAVA_UTILS} as the main
-     * eclass.
-     */
-    private int eclassJavaUtilsCount;
+    private final Map<String, Integer> eclassesCounts = new HashMap<>(10);
     /**
      * Number of processed categories. Updated during parsing the tree.
      */
@@ -164,11 +136,7 @@ public class PortageParser {
         processedCategories = 0;
         processedPackages = 0;
         processedEbuilds = 0;
-        eclassAntTasksCount = 0;
-        eclassJavaPkgCount = 0;
-        eclassJavaPkgOptCount = 0;
-        eclassJavaPkgSimpleCount = 0;
-        eclassJavaUtilsCount = 0;
+        eclassesCounts.clear();
 
         config.getStdoutWriter().println("Parsing portage tree @ "
                 + config.getPortageTree() + " ...");
@@ -176,16 +144,31 @@ public class PortageParser {
 
         final long endTimestamp = System.currentTimeMillis();
 
-        config.getStdoutWriter().println(MessageFormat.format(
+        config.getStdoutWriter().print(MessageFormat.format(
                 "Parsed {0} categories {1} packages {2} ebuilds in {3}ms and "
-                + "found {4} java ebuilds (main java eclass: {5} = {6}, "
-                + "{7} = {8}, {9} = {10}, {11} = {12}, {13} = {14})",
+                + "found {4} java ebuilds",
                 processedCategories, processedPackages, processedEbuilds,
-                endTimestamp - startTimestamp, cacheItems.size(),
-                ECLASS_ANT_TASKS, eclassAntTasksCount, ECLASS_JAVA_PKG,
-                eclassJavaPkgCount, ECLASS_JAVA_PKG_OPT, eclassJavaPkgOptCount,
-                ECLASS_JAVA_PKG_SIMPLE, eclassJavaPkgSimpleCount,
-                ECLASS_JAVA_UTILS, eclassJavaUtilsCount));
+                endTimestamp - startTimestamp, cacheItems.size()));
+
+        final List<String> sortedEclasses
+                = new ArrayList<>(eclassesCounts.keySet());
+        Collections.sort(sortedEclasses);
+
+        config.getStdoutWriter().print((" (used java eclasses: "));
+
+        for (int i = 0; i < sortedEclasses.size(); i++) {
+            if (i > 0) {
+                config.getStdoutWriter().print(", ");
+            }
+
+            final String eclass = sortedEclasses.get(i);
+
+            config.getStdoutWriter().print(eclass);
+            config.getStdoutWriter().print(" = ");
+            config.getStdoutWriter().print(eclassesCounts.get(eclass));
+        }
+
+        config.getStdoutWriter().println(")");
 
         config.getStdoutWriter().print("Writing cache file...");
         writeCacheFile(config);
@@ -193,26 +176,37 @@ public class PortageParser {
     }
 
     /**
+     * Increases counter for each eclass from the list.
+     *
+     * @param eclasses list of eclasses
+     */
+    private void countEclasses(final List<String> eclasses) {
+        eclasses.forEach((eclass) -> {
+            final Integer count = eclassesCounts.get(eclass);
+
+            if (count == null) {
+                eclassesCounts.put(eclass, 1);
+            } else {
+                eclassesCounts.put(eclass, count + 1);
+            }
+        });
+    }
+
+    /**
      * Extracts the most important java eclass from ebuild inherit line.
      *
      * @param inheritLine ebuild inherit line
      *
-     * @return java eclass or null
+     * @return list of inherited java eclasses or null
      */
-    private String getJavaInheritEclass(final String inheritLine) {
-        if (inheritLine.contains(ECLASS_JAVA_PKG)) {
-            return ECLASS_JAVA_PKG;
-        } else if (inheritLine.contains(ECLASS_JAVA_PKG_OPT)) {
-            return ECLASS_JAVA_PKG_OPT;
-        } else if (inheritLine.contains(ECLASS_JAVA_PKG_SIMPLE)) {
-            return ECLASS_JAVA_PKG_SIMPLE;
-        } else if (inheritLine.contains(ECLASS_JAVA_UTILS)) {
-            return ECLASS_JAVA_UTILS;
-        } else if (inheritLine.contains(ECLASS_ANT_TASKS)) {
-            return ECLASS_ANT_TASKS;
-        } else {
-            return null;
-        }
+    private List<String> getJavaInheritEclasses(final String inheritLine) {
+        final String[] lines
+                = inheritLine.replaceAll("^inherit\\s+", "").split("\\s+");
+
+        return Arrays.stream(lines).
+                filter((line) -> line.startsWith("java-")
+                || ECLASS_ANT_TASKS.equals(line)).
+                collect(Collectors.toList());
     }
 
     /**
@@ -257,7 +251,7 @@ public class PortageParser {
         final String pkg = ebuild.getParentFile().getName();
         final String version = filename.substring(pkg.length() + 1);
         final Map<String, String> variables = new HashMap<>(20);
-        String eclass = null;
+        List<String> eclasses = null;
         String slot = "0";
         String useFlag = null;
         String mavenId = null;
@@ -290,9 +284,9 @@ public class PortageParser {
                     }
 
                     if (line.startsWith("inherit ")) {
-                        eclass = getJavaInheritEclass(line);
+                        eclasses = getJavaInheritEclasses(line);
 
-                        if (eclass == null) {
+                        if (eclasses == null || eclasses.isEmpty()) {
                             return;
                         }
                     } else if (line.startsWith("SLOT=")) {
@@ -313,11 +307,11 @@ public class PortageParser {
             throw new RuntimeException("Failed to read ebuild", ex);
         }
 
-        if (eclass == null) {
+        if (eclasses == null) {
             return;
         }
 
-        if (ECLASS_JAVA_PKG_OPT.equals(eclass) && useFlag == null) {
+        if (eclasses.contains(ECLASS_JAVA_PKG_OPT) && useFlag == null) {
             useFlag = "java";
         }
 
@@ -358,25 +352,9 @@ public class PortageParser {
         }
 
         cacheItems.add(new CacheItem(category, pkg, version, slot, useFlag,
-                groupId, artifactId, mavenVersion, eclass));
+                groupId, artifactId, mavenVersion, eclasses));
 
-        switch (eclass) {
-            case ECLASS_ANT_TASKS:
-                eclassAntTasksCount++;
-                break;
-            case ECLASS_JAVA_PKG:
-                eclassJavaPkgCount++;
-                break;
-            case ECLASS_JAVA_PKG_OPT:
-                eclassJavaPkgOptCount++;
-                break;
-            case ECLASS_JAVA_PKG_SIMPLE:
-                eclassJavaPkgSimpleCount++;
-                break;
-            case ECLASS_JAVA_UTILS:
-                eclassJavaUtilsCount++;
-                break;
-        }
+        countEclasses(eclasses);
     }
 
     /**
@@ -511,7 +489,11 @@ public class PortageParser {
                 writer.write(cacheItem.getMavenVersion() == null
                         ? "" : cacheItem.getMavenVersion());
                 writer.write(':');
-                writer.write(cacheItem.getJavaEclass());
+
+                if (cacheItem.getJavaEclasses() != null
+                        && !cacheItem.getJavaEclasses().isEmpty()) {
+                    writer.write(String.join(",", cacheItem.getJavaEclasses()));
+                }
 
                 writer.write('\n');
             }

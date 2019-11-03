@@ -1,5 +1,10 @@
 package org.gentoo.java.ebuilder.portage;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Container for cache item information.
  *
@@ -20,9 +25,9 @@ public class CacheItem {
      */
     private final String groupId;
     /**
-     * Main Java eclass inherited.
+     * List of inherited java eclasses, in the order as they are inherited.
      */
-    private final String javaEclass;
+    private final List<String> javaEclasses;
     /**
      * Maven version (of package jar).
      */
@@ -60,12 +65,12 @@ public class CacheItem {
      * @param groupId      {@link #groupId}
      * @param artifactId   {@link #artifactId}
      * @param mavenVersion {@link #mavenVersion}
-     * @param javaEclass   {@link #javaEclass}
+     * @param javaEclasses {@link #javaEclasses}
      */
     public CacheItem(final String category, final String pkg,
             final String version, final String slot, final String useFlag,
             final String groupId, final String artifactId,
-            final String mavenVersion, final String javaEclass) {
+            final String mavenVersion, final List<String> javaEclasses) {
         this.category = category;
         this.pkg = pkg;
         this.version = version;
@@ -74,7 +79,8 @@ public class CacheItem {
         this.groupId = groupId;
         this.artifactId = artifactId;
         this.mavenVersion = mavenVersion;
-        this.javaEclass = javaEclass;
+        this.javaEclasses
+                = Collections.unmodifiableList(new ArrayList<>(javaEclasses));
 
         parsedMavenVersion = mavenVersion == null
                 ? null : new MavenVersion(mavenVersion);
@@ -110,10 +116,10 @@ public class CacheItem {
                 mavenVersion = null;
             }
 
-            if (parts.length > 8) {
-                javaEclass = parts[8].isEmpty() ? null : parts[8];
+            if (parts.length > 8 && !parts[0].isEmpty()) {
+                javaEclasses = Arrays.asList(parts[8].split(","));
             } else {
-                javaEclass = null;
+                javaEclasses = null;
             }
         } catch (final ArrayIndexOutOfBoundsException ex) {
             throw new RuntimeException("Failed to parse cache line: " + line,
@@ -152,12 +158,12 @@ public class CacheItem {
     }
 
     /**
-     * Getter for {@link #javaEclass}.
+     * Getter for {@link #javaEclasses}.
      *
-     * @return {@link #javaEclass}
+     * @return {@link #javaEclasses}
      */
-    public String getJavaEclass() {
-        return javaEclass;
+    public List<String> getJavaEclasses() {
+        return Collections.unmodifiableList(javaEclasses);
     }
 
     /**
