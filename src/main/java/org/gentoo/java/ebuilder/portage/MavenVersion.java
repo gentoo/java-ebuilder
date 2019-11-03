@@ -36,6 +36,10 @@ public class MavenVersion implements Comparable<MavenVersion> {
      * Version qualifier.
      */
     private final String qualifier;
+    /**
+     * Original version string.
+     */
+    private final String version;
 
     /**
      * Creates new instance of MavenVersion.
@@ -43,6 +47,8 @@ public class MavenVersion implements Comparable<MavenVersion> {
      * @param version version string
      */
     public MavenVersion(final String version) {
+        this.version = version;
+
         final Matcher matcherRange = PATTERN_VERSION_RANGE.matcher(version);
         final String useVersion;
 
@@ -114,5 +120,14 @@ public class MavenVersion implements Comparable<MavenVersion> {
      */
     public String getQualifier() {
         return qualifier;
+    }
+
+    /**
+     * Getter for {@link #version}.
+     *
+     * @return {@link #version}
+     */
+    public String getVersion() {
+        return version;
     }
 }

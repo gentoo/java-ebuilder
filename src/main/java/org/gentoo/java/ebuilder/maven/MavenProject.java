@@ -185,7 +185,7 @@ public class MavenProject {
                 writer.print("  artifactId: ");
                 writer.println(dependency.getArtifactId());
                 writer.print("  mavenVersion: ");
-                writer.println(dependency.getMavenVersion());
+                writer.println(dependency.getMavenVersion().getVersion());
                 writer.print("  scope: ");
                 writer.println(dependency.getScope());
                 writer.print("  systemDependency: ");
