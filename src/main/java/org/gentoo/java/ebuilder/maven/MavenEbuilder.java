@@ -324,124 +324,116 @@ public class MavenEbuilder {
                 mavenProjects, "compile");
         final List<String> runtimeDependencies = mergeSystemDependencies(
                 mavenProjects, "runtime");
-        boolean hasCDepend = !commonDependencies.isEmpty()
-                || !testDependencies.isEmpty();
+        final boolean hasCDepend = !commonDependencies.isEmpty();
+
+        writer.println();
 
         if (hasCDepend) {
-            writer.println();
             writer.println("# Common dependencies");
 
-            for (final MavenProject mavenProject : mavenProjects) {
-                if (mavenProject.getCommonDependencies().isEmpty()
-                        && mavenProject.getTestDependencies().isEmpty()) {
-                    continue;
-                }
-
-                if (!mavenProject.getCommonDependencies().isEmpty()) {
-                    writeDependenciesInfo(config, writer,
-                            mavenProject.getPomFile(),
-                            mavenProject.getCommonDependencies(), null);
-                }
-
-                if (mavenProject.getTargetVersion() != null) {
-                    writeDependenciesInfo(config, writer,
-                            mavenProject.getPomFile(),
-                            mavenProject.getTestDependencies(), "test?");
-                }
-
-                hasCDepend = true;
-            }
+            mavenProjects.stream().
+                    filter((mavenProject)
+                    -> !mavenProject.getCommonDependencies().isEmpty()).
+                    forEach((mavenProject) -> {
+                        writeDependenciesInfo(config, writer,
+                                mavenProject.getPomFile(),
+                                mavenProject.getCommonDependencies(), null);
+                    });
 
             writer.println("\nCDEPEND=\"");
 
-            if (!commonDependencies.isEmpty()) {
-                commonDependencies.stream().forEach((dependency) -> {
-                    writer.print('\t');
-                    writer.println(dependency);
-                });
-            }
-
-            if (!testDependencies.isEmpty()) {
-                writer.println("\ttest? (");
-
-                testDependencies.stream().forEach((dependency) -> {
-                    writer.print("\t\t");
-                    writer.println(dependency);
-                });
-
-                writer.println("\t)");
-            }
+            commonDependencies.stream().forEach((dependency) -> {
+                writer.print('\t');
+                writer.println(dependency);
+            });
 
             writer.println('"');
         }
 
-        if (!compileDependencies.isEmpty()) {
+        writer.println();
+
+        if (!compileDependencies.isEmpty()
+                || !testDependencies.isEmpty()) {
             writer.println("# Compile dependencies");
 
-            mavenProjects.stream().filter((mavenProject) ->
-                    (!mavenProject.getCompileDependencies().isEmpty()))
+            mavenProjects.stream().
+                    filter((mavenProject) ->
+                    !mavenProject.getCompileDependencies().isEmpty()
+                    || !mavenProject.getTestDependencies().isEmpty())
                     .forEach((mavenProject) -> {
-                        writeDependenciesInfo(config, writer,
-                                mavenProject.getPomFile(),
-                                mavenProject.getCompileDependencies(), null);
+                        if (!mavenProject.getCompileDependencies().isEmpty()) {
+                            writeDependenciesInfo(config, writer,
+                                    mavenProject.getPomFile(),
+                                    mavenProject.getCompileDependencies(),
+                                    null);
+                        }
+
+                        if (!mavenProject.getTestDependencies().isEmpty()) {
+                            writeDependenciesInfo(config, writer,
+                                    mavenProject.getPomFile(),
+                                    mavenProject.getTestDependencies(),
+                                    "test?");
+                        }
                     });
-        } else {
-            writer.println();
         }
 
-        writer.print("DEPEND=\"");
-
-        if (hasCDepend) {
-            writer.print("${CDEPEND}");
-        }
-
-        writer.println();
-        writer.print("\t>=virtual/jdk-");
+        writer.print("\nDEPEND=\"\n\t=virtual/jdk-");
         writer.print(getMinSourceVersion(
                 mavenProjects, config.getForceMinJavaVersion()));
-        writer.print(":*");
+        writer.println(":*");
+
+        if (hasCDepend) {
+            writer.println("\t${CDEPEND}");
+        }
 
         if (config.getDownloadUri() != null && config.getDownloadUri().
                 toString().matches("^.*?\\.(jar|zip)$")) {
-            writer.println();
-            writer.print("\tapp-arch/unzip");
+            writer.println("\tapp-arch/unzip");
         }
 
         if (!compileDependencies.isEmpty()) {
             compileDependencies.stream().forEach((dependency) -> {
-                writer.println();
                 writer.print('\t');
                 writer.println(dependency);
             });
         }
 
+        if (!testDependencies.isEmpty()) {
+            writer.println("\ttest? (");
+
+            testDependencies.stream().forEach((dependency) -> {
+                writer.print("\t\t");
+                writer.println(dependency);
+            });
+
+            writer.println("\t)");
+        }
+
         writer.println('"');
+
+        writer.println();
 
         if (!runtimeDependencies.isEmpty()) {
             writer.println("# Runtime dependencies");
 
-            mavenProjects.stream().filter((mavenProject) -> (!mavenProject.
-                    getRuntimeDependencies().isEmpty()))
+            mavenProjects.stream().
+                    filter((mavenProject)
+                            -> !mavenProject.getRuntimeDependencies().isEmpty())
                     .forEach((mavenProject) -> {
                         writeDependenciesInfo(config, writer,
                                 mavenProject.getPomFile(),
                                 mavenProject.getRuntimeDependencies(), null);
                     });
-        } else {
-            writer.println();
         }
 
-        writer.print("RDEPEND=\"");
+        writer.print("RDEPEND=\"\n\t>=virtual/jre-");
+        writer.print(getMinTargetVersion(
+                mavenProjects, config.getForceMinJavaVersion()));
+        writer.println(":*");
 
         if (hasCDepend) {
             writer.print("${CDEPEND}");
         }
-
-        writer.println();
-        writer.print("\t>=virtual/jre-");
-        writer.print(getMinTargetVersion(
-                mavenProjects, config.getForceMinJavaVersion()));
-        writer.print(":*");
 
         if (!runtimeDependencies.isEmpty()) {
             runtimeDependencies.stream().forEach((dependency) -> {
