@@ -88,18 +88,21 @@ public class MavenEbuilder {
                         sbCP.append(',');
                     }
 
-		    String[] parts = dependency.getSystemDependency().
-			replaceAll(".*/", "").
-			replaceAll("\\[.*\\]", "").
-			split(":");
-		    String PN = parts[0].replaceAll("-r\\d+$", "");
-		    if (parts.length == 2) {
-			PN = PN.substring(0, PN.lastIndexOf('-'));
-			if (!parts[1].equals("0")) {
-			    PN += "-" + parts[1];
-			}
-		    }
-                    sbCP.append(PN);
+                    final String[] parts = dependency.getSystemDependency().
+                            replaceAll(".*/", "").
+                            replaceAll("\\[.*\\]", "").
+                            split(":");
+                    String pn = parts[0].replaceAll("-r\\d+$", "");
+
+                    if (parts.length == 2) {
+                        pn = pn.substring(0, pn.lastIndexOf('-'));
+
+                        if (!parts[1].equals("0")) {
+                            pn += "-" + parts[1];
+                        }
+                    }
+
+                    sbCP.append(pn);
                 });
 
         return sbCP.toString();
@@ -155,7 +158,7 @@ public class MavenEbuilder {
     /**
      * Retrieves minimum source version from the maven projects.
      *
-     * @param mavenProjects list of maven projects
+     * @param mavenProjects   list of maven projects
      * @param forceMinVersion optional minimum version to force
      *
      * @return minimum source version
@@ -182,7 +185,7 @@ public class MavenEbuilder {
     /**
      * Retrieves minimum target version from the maven projects.
      *
-     * @param mavenProjects list of maven projects
+     * @param mavenProjects   list of maven projects
      * @param forceMinVersion optional minimum version to force
      *
      * @return minimum target version
@@ -371,7 +374,7 @@ public class MavenEbuilder {
 
             mavenProjects.stream().
                     filter((mavenProject)
-                    -> !mavenProject.getCommonDependencies().isEmpty()).
+                            -> !mavenProject.getCommonDependencies().isEmpty()).
                     forEach((mavenProject) -> {
                         writeDependenciesInfo(config, writer,
                                 mavenProject.getPomFile(),
@@ -395,8 +398,8 @@ public class MavenEbuilder {
             writer.println("# Compile dependencies");
 
             mavenProjects.stream().
-                    filter((mavenProject) ->
-                    !mavenProject.getCompileDependencies().isEmpty()
+                    filter((mavenProject)
+                            -> !mavenProject.getCompileDependencies().isEmpty()
                     || !mavenProject.getTestDependencies().isEmpty())
                     .forEach((mavenProject) -> {
                         if (!mavenProject.getCompileDependencies().isEmpty()) {
@@ -546,7 +549,7 @@ public class MavenEbuilder {
      * @param writer ebuild writer
      */
     private void writeInherit(final MavenProject mavenProject,
-                              final PrintWriter writer) {
+            final PrintWriter writer) {
         writer.println();
         writer.print("JAVA_PKG_IUSE=\"doc source");
 
@@ -764,11 +767,11 @@ public class MavenEbuilder {
 
                 mavenProject.getTestResourceDirectories().
                         forEach((directory) -> {
-                    writer.print("\t\"");
-                    writer.print(replaceWithVars(config.getWorkdir().
-                            relativize(directory).toString(), config));
-                    writer.println('"');
-                });
+                            writer.print("\t\"");
+                            writer.print(replaceWithVars(config.getWorkdir().
+                                    relativize(directory).toString(), config));
+                            writer.println('"');
+                        });
 
                 writer.println(')');
             }
