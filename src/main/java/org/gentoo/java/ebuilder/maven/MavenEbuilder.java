@@ -7,6 +7,8 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.gentoo.java.ebuilder.Config;
 
 /**
@@ -20,6 +22,16 @@ public class MavenEbuilder {
      * EAPI version.
      */
     private static final String EAPI = "7";
+    /**
+     * Pattern for retrieval of tarball extension.
+     */
+    private static final Pattern PATTERN_TARBALL_EXTENSION = Pattern.compile(
+            "^.*((?:\\.tar)\\.\\S+)$");
+    /**
+     * Pattern for checking whether download tarball name matches expected name.
+     */
+    private static final Pattern PATTERN_TARBALL_NAME
+            = Pattern.compile("^.*/\\$\\{P\\}(?:\\.tar)\\.\\S+$");
 
     /**
      * Generates ebuild from the collected information at the specified path.
@@ -192,6 +204,32 @@ public class MavenEbuilder {
         }
 
         return result;
+    }
+
+    /**
+     * If the tarball name does not match pattern ${P}.ext then we will update
+     * it to store the tarball as ${P}.ext.
+     *
+     * @param srcUri source URI
+     *
+     * @return either original source URI or updated source URI
+     */
+    private String improveSrcUri(final String srcUri) {
+        if (PATTERN_TARBALL_NAME.matcher(srcUri).matches()) {
+            return srcUri;
+        }
+
+        final Matcher matcher = PATTERN_TARBALL_EXTENSION.matcher(srcUri);
+
+        /**
+         * We do not know how to get the extension so we will leave the tarball
+         * name as it is.
+         */
+        if (!matcher.matches()) {
+            return srcUri;
+        }
+
+        return srcUri + " -> " + "${P}" + matcher.group(1);
     }
 
     /**
@@ -578,8 +616,8 @@ public class MavenEbuilder {
         writer.println('"');
 
         writer.print("SRC_URI=\"");
-        writer.print(
-                replaceWithVars(config.getDownloadUri().toString(), config));
+        writer.print(improveSrcUri(
+                replaceWithVars(config.getDownloadUri().toString(), config)));
         writer.println('"');
 
         writer.print("LICENSE=\"");
