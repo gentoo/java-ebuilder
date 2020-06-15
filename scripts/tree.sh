@@ -72,7 +72,7 @@ gebd() {
     PA=${PA//_/-}
 
     local M=${MA}-${MV}
-    local SRC_URI="http://central.maven.org/maven2/${WORKDIR}/${MV}/${M}-sources.jar"
+    local SRC_URI="https://repo.maven.apache.org/maven2/${WORKDIR}/${MV}/${M}-sources.jar"
 
     if [[ ! -f "${POMDIR}"/${M}.pom ]]; then
         pushd "${POMDIR}" > /dev/null
