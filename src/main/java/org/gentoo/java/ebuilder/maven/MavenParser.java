@@ -102,6 +102,9 @@ public class MavenParser {
                 pomFile.toString(), "help:effective-pom",
                 "-Doutput=" + outputPath);
         processBuilder.directory(config.getWorkdir().toFile());
+        final ProcessBuilder xmlBuilder = new ProcessBuilder("/usr/lib/java-ebuilder/simple_formatter",
+                "" + outputPath);
+        xmlBuilder.directory(config.getWorkdir().toFile());
 
         final Process process;
 
@@ -118,6 +121,20 @@ public class MavenParser {
                     + "within 10 minute, exiting.");
             Runtime.getRuntime().exit(1);
         }
+
+        final Process xmlProcess;
+        try {
+            xmlProcess = xmlBuilder.start();
+        } catch (final IOException ex) {
+            throw new RuntimeException("Failed to format xml", ex);
+        }
+        try {
+            xmlProcess.waitFor(10, TimeUnit.MINUTES);
+        } catch (final InterruptedException ex) {
+            config.getErrorWriter().println("ERROR: xml formatter run 10 minutes??");
+            Runtime.getRuntime().exit(1);
+        }
+
 
         if (process.exitValue() != 0) {
             config.getErrorWriter().println(

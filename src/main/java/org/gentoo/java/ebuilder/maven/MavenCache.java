@@ -24,7 +24,7 @@ public class MavenCache {
      * items.
      */
     private final Map<String, Map<String, List<CacheItem>>> cache
-            = new HashMap<>(200);
+            = new HashMap<>();
 
     /**
      * Searches for system dependency using maven group id, artifact id and
@@ -151,7 +151,7 @@ public class MavenCache {
                 = cache.get(cacheItem.getGroupId());
 
         if (artifactIds == null) {
-            artifactIds = new HashMap<>(100);
+            artifactIds = new HashMap<>();
             cache.put(cacheItem.getGroupId(), artifactIds);
         }
 
