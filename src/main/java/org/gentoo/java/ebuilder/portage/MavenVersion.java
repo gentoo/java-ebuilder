@@ -19,7 +19,7 @@ public class MavenVersion implements Comparable<MavenVersion> {
      * Pattern for parsing maven version range.
      */
     private static final Pattern PATTERN_VERSION_RANGE
-            = Pattern.compile("\\[.*, ?(.*?)\\]");
+            = Pattern.compile("[\\[\\(](.*), ?(.*?)[\\]\\)]");
     /**
      * Incremental version number.
      */
