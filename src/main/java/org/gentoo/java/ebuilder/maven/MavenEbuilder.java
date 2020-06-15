@@ -418,7 +418,7 @@ public class MavenEbuilder {
                     });
         }
 
-        writer.print("\nDEPEND=\"\n\t=virtual/jdk-");
+        writer.print("\nDEPEND=\"\n\t>=virtual/jdk-");
         writer.print(getMinSourceVersion(
                 mavenProjects, config.getForceMinJavaVersion()));
         writer.println(":*");
@@ -702,10 +702,12 @@ public class MavenEbuilder {
             writer.println('"');
         }
 
+        /*
         writer.print("JAVA_SRC_DIR=\"");
         writer.print(replaceWithVars(config.getWorkdir().relativize(
                 mavenProject.getSourceDirectory()).toString(), config));
         writer.println('"');
+	*/
 
         if (mavenProject.getMainClass() != null) {
             writer.print("JAVA_MAIN_CLASS=\"");
