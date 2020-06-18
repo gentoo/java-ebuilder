@@ -258,6 +258,7 @@ public class PortageParser {
         String groupId = null;
         String artifactId = null;
         String mavenVersion = null;
+	String[] mavenProvide = null;
 
         try (final BufferedReader reader = new BufferedReader(
                 new InputStreamReader(Files.newInputStream(ebuild.toPath(),
@@ -298,6 +299,9 @@ public class PortageParser {
                     } else if (line.startsWith("MAVEN_ID=")) {
                         mavenId = line.substring("MAVEN_ID=".length()).
                                 replace("\"", "");
+                    } else if (line.startsWith("MAVEN_PROVIDE=")) {
+                        mavenProvide = line.substring("MAVEN_PROVIDE=".length()).
+				replace("\"", "").split(" ");
                     }
                 }
 
@@ -354,6 +358,13 @@ public class PortageParser {
         cacheItems.add(new CacheItem(category, pkg, version, slot, useFlag,
                 groupId, artifactId, mavenVersion, eclasses));
 
+	if (mavenP != null) {
+            for (String providedId: mavenProvide) {
+                parts = mavenProvide.split(":")
+                cacheItems.add(new CacheItem(category, pkg, version, slot, useFlag,
+                        parts[0], parts[1], parts[2], eclasses));
+            }
+        }
         countEclasses(eclasses);
     }
 
