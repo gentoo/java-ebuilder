@@ -358,9 +358,9 @@ public class PortageParser {
         cacheItems.add(new CacheItem(category, pkg, version, slot, useFlag,
                 groupId, artifactId, mavenVersion, eclasses));
 
-	if (mavenP != null) {
+	if (mavenProvide != null) {
             for (String providedId: mavenProvide) {
-                parts = mavenProvide.split(":")
+                final String[] parts = providedId.split(":");
                 cacheItems.add(new CacheItem(category, pkg, version, slot, useFlag,
                         parts[0], parts[1], parts[2], eclasses));
             }
