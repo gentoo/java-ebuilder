@@ -57,7 +57,7 @@ public class MavenCache {
 
         for (final CacheItem curCacheItem : versions) {
             if (curCacheItem.getParsedMavenVersion().compareTo(mavenVersion)
-                    <= 0) {
+                    >= 0) {
                 cacheItem = curCacheItem;
 
                 break;
@@ -65,7 +65,7 @@ public class MavenCache {
         }
 
         if (cacheItem == null) {
-            cacheItem = versions.get(versions.size() - 1);
+            return "!!!suitble-avenVersion-not-found!!!";
         }
 
         final StringBuilder sbDependency = new StringBuilder(50);
