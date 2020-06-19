@@ -70,7 +70,7 @@ public class MavenVersion implements Comparable<MavenVersion> {
                 ? 0 : Integer.parseInt(matcher.group(2), 10);
         incrementalVersion = matcher.group(3) == null
                 ? 0 : Integer.parseInt(matcher.group(3), 10);
-        qualifier = matcher.group(4) == null ? "" : matcher.group(4);
+        qualifier = matcher.group(4) == null ? "" : matcher.group(4).toLowerCase();
     }
 
     @Override
@@ -81,6 +81,8 @@ public class MavenVersion implements Comparable<MavenVersion> {
             return Integer.valueOf(majorVersion).compareTo(o.getMajorVersion());
         } else if (minorVersion != o.getMinorVersion()) {
             return Integer.valueOf(minorVersion).compareTo(o.getMinorVersion());
+        } else if (incrementalVersion != o.getIncrementalVersion()) {
+            return Integer.valueOf(incrementalVersion).compareTo(o.getIncrementalVersion());
         } else {
             return qualifier.compareTo(o.getQualifier());
         }
