@@ -32,8 +32,6 @@ public class JavaVersion {
      * @param versionString version string
      */
     public JavaVersion(final String versionString) {
-        this.versionString = versionString;
-
         final Matcher matcher = PATTERN_VERSION.matcher(versionString);
 
         if (!matcher.matches()) {
@@ -42,6 +40,13 @@ public class JavaVersion {
         }
 
         versionNumber = Integer.parseInt(matcher.group(1), 10);
+        if (versionNumber <= 8) {
+            this.versionString = "1." + Integer.toString(versionNumber);
+        }
+        else {
+            this.versionString = versionString;
+        }
+
     }
 
     /**
