@@ -8,6 +8,7 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -251,6 +252,8 @@ public class PortageParser {
         final String pkg = ebuild.getParentFile().getName();
         final String version = filename.substring(pkg.length() + 1);
         final Map<String, String> variables = new HashMap<>(20);
+        final Path ebuildMetadata = Paths.get(ebuild.getParent(), "..", "..",
+                "metadata", "md5-cache", category, filename).normalize();
         List<String> eclasses = null;
         String slot = "0";
         String useFlag = null;
@@ -328,7 +331,12 @@ public class PortageParser {
             pv = version.substring(0, pos);
         }
 
-        slot = processSlot(slot, pv, variables);
+        if (Files.exists(ebuildMetadata)) {
+            slot = processSlot(slot, ebuildMetadata);
+        }
+        else {
+            slot = processSlot(slot, pv, variables);
+        }
 
         if (mavenId != null) {
             mavenId = mavenId.replaceAll("\\$(\\{PN\\}|PN)", pkg).
@@ -386,6 +394,40 @@ public class PortageParser {
             parseEbuild(ebuild);
             processedEbuilds++;
         }
+    }
+
+    /**
+     * Processes various instructions in SLOT string.
+     *
+     * @param slot           SLOT string
+     * @param ebuildMetadata path to the metadata of the Gentoo package
+     *
+     * @return processed SLOT string
+     */
+    private String processSlot(final String slot,
+            final Path ebuildMetadata) {
+        //final metadata = new File(ebuildMetadata.toString());
+	String result = slot;
+        try (final BufferedReader reader = new BufferedReader(
+                new InputStreamReader(Files.newInputStream(ebuildMetadata,
+                        StandardOpenOption.READ)))) {
+            String line = reader.readLine();
+            while (line != null) {
+                line = line.trim();
+
+                if (!line.isEmpty()) {
+                    if (line.startsWith("SLOT=")) {
+                        result = line.substring("SLOT=".length()).replace(
+                                "\"", "").replaceAll("/.*", "");
+                    }
+
+                line = reader.readLine();
+                }
+            }
+        } catch (final IOException ex) {
+            throw new RuntimeException("Failed to read ebuild", ex);
+        }
+	return result;
     }
 
     /**
