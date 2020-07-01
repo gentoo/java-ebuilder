@@ -239,6 +239,9 @@ public class Main {
                     i++;
                     config.setForceMinJavaVersion(new JavaVersion(args[i]));
                     break;
+		case "--from-maven-central":
+		    config.setFromMavenCentral(true);
+		    break;
                 case "--generate-ebuild":
                 case "-g":
                     config.setGenerateEbuild(true);

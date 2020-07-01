@@ -26,12 +26,12 @@ public class MavenEbuilder {
      * Pattern for retrieval of tarball extension.
      */
     private static final Pattern PATTERN_TARBALL_EXTENSION = Pattern.compile(
-            "^.*((?:\\.tar)\\.\\S+)$");
+            "^.*((?:\\.tar)\\.\\S+|(?:\\.jar))$");
     /**
      * Pattern for checking whether download tarball name matches expected name.
      */
     private static final Pattern PATTERN_TARBALL_NAME
-            = Pattern.compile("^.*/\\$\\{P\\}(?:\\.tar)\\.\\S+$");
+            = Pattern.compile("^.*/\\$\\{P\\}((?:\\.tar)\\.\\S+|(?:\\.jar))$");
 
     /**
      * Generates ebuild from the collected information at the specified path.
@@ -235,6 +235,41 @@ public class MavenEbuilder {
         return srcUri + " -> " + "${P}" + matcher.group(1);
     }
 
+    /**
+     * If the tarball name does not match pattern ${P}-test.ext then we will update
+     * it to store the tarball as ${P}-test.ext.
+     *
+     * @param TestSrcUri source test URI
+     *
+     * @return either original source test URI or updated source test URI
+    private String improveTestSrcUri(final String TestSrcUri) {
+        if (PATTERN_TEST_TARBALL_NAME.matcher(TestSrcUri).matches()) {
+            return TestSrcUri;
+        }
+
+        final Matcher matcher = PATTERN_TARBALL_EXTENSION.matcher(TestSrcUri);
+
+        /**
+         * We do not know how to get the extension so we will leave the tarball
+         * name as it is.
+        /
+        if (!matcher.matches()) {
+            return TestSrcUri;
+        }
+
+        return TestSrcUri + " -> " + "${P}-test" + matcher.group(1);
+    }
+     */
+
+    /**
+     * Merges maven project system dependencies of specified type and removed
+     * duplicates.
+     *
+     * @param mavenProjects list of maven projects
+     * @param type          type of dependencies ("common", "compile", "runtime"
+     *                      and "test")
+     *
+     * @return list of merged dependencies
     /**
      * Merges maven project system dependencies of specified type and removed
      * duplicates.
@@ -702,12 +737,10 @@ public class MavenEbuilder {
             writer.println('"');
         }
 
-        /*
         writer.print("JAVA_SRC_DIR=\"");
         writer.print(replaceWithVars(config.getWorkdir().relativize(
                 mavenProject.getSourceDirectory()).toString(), config));
         writer.println('"');
-	*/
 
         if (mavenProject.getMainClass() != null) {
             writer.print("JAVA_MAIN_CLASS=\"");
@@ -778,6 +811,11 @@ public class MavenEbuilder {
                 writer.println(')');
             }
         }
+
+        if (config.isFromMavenCentral()) {
+            writeMavenUnpack(mavenProject, writer);
+        }
+
     }
 
     /**
@@ -788,5 +826,23 @@ public class MavenEbuilder {
     private void writeSourceDir(final PrintWriter writer) {
         writer.println();
         writer.println("S=\"${WORKDIR}\"");
+    }
+
+    /**
+     * modify src_unpack() if we use Maven distributed source codes.
+     *
+     * @param writer ebuild writer
+     */
+    private void writeMavenUnpack(final MavenProject mavenProject,
+            final PrintWriter writer) {
+        writer.println();
+        writer.println("src_unpack() {");
+        writer.println("\tmkdir -p ${S}/${JAVA_SRC_DIR}");
+        writer.println("\tunzip ${DISTDIR}/${P}.jar -d ${S}/${JAVA_SRC_DIR}");
+        if (mavenProject.hasTests()) {
+            writer.println("\tmkdir -p ${JAVA_TEST_SRC_DIR}");
+            writer.println("\tunzip ${DISTDIR}/${P}-test.jar -d ${S}/${JAVA_TEST_SRC_DIR}");
+        }
+        writer.println("}");
     }
 }

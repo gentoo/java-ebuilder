@@ -55,6 +55,10 @@ public class Config {
      */
     private JavaVersion forceMinJavaVersion;
     /**
+     * Whethe the source code is distributed by Maven Central
+     */
+    private boolean fromMavenCentral;
+    /**
      * Whether ebuild should be generated.
      */
     private boolean generateEbuild;
@@ -371,6 +375,24 @@ public class Config {
      */
     public void setDumpProjects(final boolean dumpProjects) {
         this.dumpProjects = dumpProjects;
+    }
+
+    /**
+     * Getter for {@link #fromMavenCentral}.
+     *
+     * @return {@link #fromMavenCentral}
+     */
+    public boolean isFromMavenCentral() {
+        return fromMavenCentral;
+    }
+
+    /**
+     * Setter for {@link #fromMavenCentral}.
+     *
+     * @param fromMavenCentral {@link #fromMavenCentral}
+     */
+    public void setFromMavenCentral(final boolean fromMavenCentral) {
+        this.fromMavenCentral = fromMavenCentral;
     }
 
     /**
