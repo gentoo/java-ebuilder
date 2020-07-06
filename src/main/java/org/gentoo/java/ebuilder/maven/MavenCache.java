@@ -65,7 +65,7 @@ public class MavenCache {
         }
 
         if (cacheItem == null) {
-            return "!!!suitble-avenVersion-not-found!!!";
+            return "!!!suitble-mavenVersion-not-found!!!";
         }
 
         final StringBuilder sbDependency = new StringBuilder(50);

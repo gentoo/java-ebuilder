@@ -838,10 +838,10 @@ public class MavenEbuilder {
         writer.println();
         writer.println("src_unpack() {");
         writer.println("\tmkdir -p ${S}/${JAVA_SRC_DIR}");
-        writer.println("\tunzip ${DISTDIR}/${P}.jar -d ${S}/${JAVA_SRC_DIR}");
+        writer.println("\tunzip ${DISTDIR}/${P}.jar -d ${S}/${JAVA_SRC_DIR} || die");
         if (mavenProject.hasTests()) {
             writer.println("\tmkdir -p ${JAVA_TEST_SRC_DIR}");
-            writer.println("\tunzip ${DISTDIR}/${P}-test.jar -d ${S}/${JAVA_TEST_SRC_DIR}");
+            writer.println("\tunzip ${DISTDIR}/${P}-test.jar -d ${S}/${JAVA_TEST_SRC_DIR} || die");
         }
         writer.println("}");
     }
