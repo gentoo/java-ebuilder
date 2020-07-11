@@ -302,8 +302,8 @@ public class PortageParser {
                     } else if (line.startsWith("MAVEN_ID=")) {
                         mavenId = line.substring("MAVEN_ID=".length()).
                                 replace("\"", "");
-                    } else if (line.startsWith("MAVEN_PROVIDE=")) {
-                        mavenProvide = line.substring("MAVEN_PROVIDE=".length()).
+                    } else if (line.startsWith("MAVEN_PROVIDES=")) {
+                        mavenProvide = line.substring("MAVEN_PROVIDES=".length()).
 				replace("\"", "").split(" ");
                     }
                 }

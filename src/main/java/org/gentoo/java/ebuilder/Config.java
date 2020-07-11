@@ -22,6 +22,14 @@ public class Config {
     private Path cacheFile = Paths.get(System.getProperty("user.home"),
             ".java-ebuilder/cache");
     /**
+     * URI that goes to pre-compiled Maven Jar.
+     */
+    private URI binjarUri;
+    /**
+     * whether binjarUri is set.
+     */
+    private boolean binjarUriExists;
+    /**
      * URI that goes to SRC_URI.
      */
     private URI downloadUri;
@@ -132,6 +140,34 @@ public class Config {
      */
     public void setCacheFile(final Path cacheFile) {
         this.cacheFile = cacheFile;
+    }
+
+    /**
+     * Getter for {@link #binjarUri}.
+     *
+     * @return {@link #binjarUri}
+     */
+    public URI getBinjarUri() {
+        return binjarUri;
+    }
+
+    /**
+     * Getter for {@link #binjarUriExists}.
+     *
+     * @return {@link #binjarUriExists}
+     */
+    public boolean hasBinjarUri() {
+        return binjarUriExists;
+    }
+
+    /**
+     * Setter for {@link #binjarUri}.
+     *
+     * @param binjarUri {@link #binjarUri}
+     */
+    public void setBinjarUri(final URI binjarUri) {
+        this.binjarUri = binjarUri;
+        this.binjarUriExists = true;
     }
 
     /**

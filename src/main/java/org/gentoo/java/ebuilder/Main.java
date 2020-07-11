@@ -213,6 +213,17 @@ public class Main {
             final String arg = args[i];
 
             switch (arg) {
+                case "--binjar-uri":
+                    i++;
+
+                    try {
+                        config.setBinjarUri(new URI(args[i]));
+                    } catch (final URISyntaxException ex) {
+                        config.getErrorWriter().println("ERROR: BINJAR_URI " + args[i]
+                                + " is not valid.");
+                    }
+
+                    break;
                 case "--download-uri":
                 case "-u":
                     i++;
@@ -220,7 +231,7 @@ public class Main {
                     try {
                         config.setDownloadUri(new URI(args[i]));
                     } catch (final URISyntaxException ex) {
-                        config.getErrorWriter().println("ERROR: URI " + args[i]
+                        config.getErrorWriter().println("ERROR: SRC_URI " + args[i]
                                 + " is not valid.");
                     }
 
