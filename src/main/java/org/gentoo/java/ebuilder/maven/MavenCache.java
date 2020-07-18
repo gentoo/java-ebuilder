@@ -69,12 +69,16 @@ public class MavenCache {
         }
 
         final StringBuilder sbDependency = new StringBuilder(50);
-        sbDependency.append(">=");
+	if (cacheItem.getCategory().compareTo("java-virtuals") != 0) {
+            sbDependency.append(">=");
+	}
         sbDependency.append(cacheItem.getCategory());
         sbDependency.append('/');
         sbDependency.append(cacheItem.getPkg());
-        sbDependency.append('-');
-        sbDependency.append(stripExtraFromVersion(cacheItem.getVersion()));
+	if (cacheItem.getCategory().compareTo("java-virtuals") != 0) {
+            sbDependency.append('-');
+            sbDependency.append(stripExtraFromVersion(cacheItem.getVersion()));
+	}
 
         if (cacheItem.getUseFlag() != null) {
             sbDependency.append('[');

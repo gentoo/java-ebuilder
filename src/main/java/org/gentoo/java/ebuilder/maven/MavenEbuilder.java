@@ -57,7 +57,7 @@ public class MavenEbuilder {
              */
             final MavenProject mavenProject
                     = mavenProjects.get(mavenProjects.size() - 1);
-            writeInherit(mavenProject, writer);
+            writeInherit(config, mavenProject, writer);
             writePackageInfo(config, mavenProject, writer);
 
             writeDependencies(config, mavenProjects, writer);
@@ -244,16 +244,11 @@ public class MavenEbuilder {
      */
     private String improveBinjarUri(final String binjarUri) {
 
-        final Matcher matcher = PATTERN_TARBALL_EXTENSION.matcher(binjarUri);
-
         /**
-         * We do not know how to get the extension so assume it will be jar
+         * Binary file should be jars
          */
-        if (!matcher.matches()) {
-            return binjarUri + " -> " + "${P}-bin.jar";
-        }
+        return binjarUri + " -> " + "${P}-bin.jar";
 
-        return binjarUri + " -> " + "${P}-bin" + matcher.group(1);
     }
 
     /**
@@ -479,13 +474,17 @@ public class MavenEbuilder {
                 mavenProjects, config.getForceMinJavaVersion()));
         writer.println(":*");
 
-        if (hasCDepend) {
-            writer.println("\t${CDEPEND}");
-        }
-
         if (config.getDownloadUri() != null && config.getDownloadUri().
                 toString().matches("^.*?\\.(jar|zip)$")) {
             writer.println("\tapp-arch/unzip");
+        }
+
+        if (config.hasBinjarUri() && (hasCDepend || !compileDependencies.isEmpty())) {
+            writer.println("\t!binary? (");
+        }
+
+        if (hasCDepend) {
+            writer.println("\t${CDEPEND}");
         }
 
         if (!compileDependencies.isEmpty()) {
@@ -493,6 +492,10 @@ public class MavenEbuilder {
                 writer.print('\t');
                 writer.println(dependency);
             });
+        }
+
+        if (config.hasBinjarUri() && (hasCDepend || !compileDependencies.isEmpty())) {
+            writer.println("\t)");
         }
 
         if (!testDependencies.isEmpty()) {
@@ -528,10 +531,6 @@ public class MavenEbuilder {
                 mavenProjects, config.getForceMinJavaVersion()));
         writer.println(":*");
 
-        if (config.hasBinjarUri()) {
-            writer.println("\t!binary? (");
-        }
-
         if (hasCDepend) {
             writer.print("${CDEPEND}");
         }
@@ -544,9 +543,6 @@ public class MavenEbuilder {
             });
         }
 
-        if (config.hasBinjarUri()) {
-            writer.println("\t)");
-        }
 
 
         writer.println('"');
@@ -613,8 +609,8 @@ public class MavenEbuilder {
      *
      * @param writer ebuild writer
      */
-    private void writeInherit(final MavenProject mavenProject,
-            final PrintWriter writer) {
+    private void writeInherit(final Config config,
+            final MavenProject mavenProject, final PrintWriter writer) {
         writer.println();
         writer.print("JAVA_PKG_IUSE=\"doc source");
 
@@ -622,7 +618,7 @@ public class MavenEbuilder {
             writer.print(" test");
         }
 
-        if (mavenProject.hasBinjarUri()) {
+        if (config.hasBinjarUri()) {
             writer.print(" binary");
         }
 
@@ -800,6 +796,10 @@ public class MavenEbuilder {
             writer.println(')');
         }
 
+	if (config.hasBinjarUri()) {
+            writer.println("JAVA_BINJAR_FILENAME=\"${P}-bin.jar\"");
+	}
+
         final String testingFramework = determineTestingFramework(mavenProject);
         boolean firstTestVar = true;
 
@@ -851,7 +851,7 @@ public class MavenEbuilder {
         }
 
         if (config.isFromMavenCentral()) {
-            writeMavenUnpack(config, mavenProject, writer);
+            writeMavenUnpack(mavenProject, writer);
         }
 
     }
@@ -871,8 +871,8 @@ public class MavenEbuilder {
      *
      * @param writer ebuild writer
      */
-    private void writeMavenUnpack(final Config config,
-            final MavenProject mavenProject, final PrintWriter writer) {
+    private void writeMavenUnpack(final MavenProject mavenProject,
+            final PrintWriter writer) {
         writer.println();
         writer.println("src_unpack() {");
         writer.println("\tmkdir -p ${S}/${JAVA_SRC_DIR}");
@@ -881,10 +881,6 @@ public class MavenEbuilder {
         if (mavenProject.hasTests()) {
             writer.println("\tmkdir -p ${JAVA_TEST_SRC_DIR}");
             writer.println("\tunzip ${DISTDIR}/${P}-test.jar -d ${S}/${JAVA_TEST_SRC_DIR} || die");
-        }
-
-	if (config.hasBinjarUri()) {
-            writer.println("use binary && cp ${DISTDIR}/${P}-bin.jar ${S}/${PN}.jar || die \"failed to copy binary jar\"");
         }
 
         writer.println("}");
