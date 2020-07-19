@@ -31,7 +31,7 @@ public class MavenEbuilder {
      * Pattern for checking whether download tarball name matches expected name.
      */
     private static final Pattern PATTERN_TARBALL_NAME
-            = Pattern.compile("^.*/\\$\\{P\\}((?:\\.tar)\\.\\S+|(?:\\.jar))$");
+            = Pattern.compile("^.*/\\$\\{P\\}-sources.((?:\\.tar)\\.\\S+|(?:\\.jar))$");
 
     /**
      * Generates ebuild from the collected information at the specified path.
@@ -232,7 +232,7 @@ public class MavenEbuilder {
             return srcUri;
         }
 
-        return srcUri + " -> " + "${P}" + matcher.group(1);
+        return srcUri + " -> " + "${P}-sources" + matcher.group(1);
     }
 
     /**
@@ -876,7 +876,7 @@ public class MavenEbuilder {
         writer.println();
         writer.println("src_unpack() {");
         writer.println("\tmkdir -p ${S}/${JAVA_SRC_DIR}");
-        writer.println("\tunzip ${DISTDIR}/${P}.jar -d ${S}/${JAVA_SRC_DIR} || die");
+        writer.println("\tunzip ${DISTDIR}/${P}-sources.jar -d ${S}/${JAVA_SRC_DIR} || die");
 
         if (mavenProject.hasTests()) {
             writer.println("\tmkdir -p ${JAVA_TEST_SRC_DIR}");
