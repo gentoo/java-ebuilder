@@ -614,7 +614,7 @@ public class MavenEbuilder {
         writer.println();
         writer.print("JAVA_PKG_IUSE=\"doc source");
 
-        if (mavenProject.hasTests()) {
+        if (mavenProject.hasTests() || config.hasBinjarUri()) {
             writer.print(" test");
         }
 
@@ -796,9 +796,9 @@ public class MavenEbuilder {
             writer.println(')');
         }
 
-	if (config.hasBinjarUri()) {
+        if (config.hasBinjarUri()) {
             writer.println("JAVA_BINJAR_FILENAME=\"${P}-bin.jar\"");
-	}
+        }
 
         final String testingFramework = determineTestingFramework(mavenProject);
         boolean firstTestVar = true;
@@ -875,13 +875,21 @@ public class MavenEbuilder {
             final PrintWriter writer) {
         writer.println();
         writer.println("src_unpack() {");
-        writer.println("\tmkdir -p ${S}/${JAVA_SRC_DIR}");
-        writer.println("\tunzip ${DISTDIR}/${P}-sources.jar -d ${S}/${JAVA_SRC_DIR} || die");
+        writer.println("\tmkdir -p \"${S}\"/${JAVA_SRC_DIR}");
+        writer.println(
+                "\tunzip \"${DISTDIR}\"/${P}-sources.jar" +
+                " -d \"${S}\"/${JAVA_SRC_DIR} || die");
 
-        if (mavenProject.hasTests()) {
-            writer.println("\tmkdir -p ${JAVA_TEST_SRC_DIR}");
-            writer.println("\tunzip ${DISTDIR}/${P}-test.jar -d ${S}/${JAVA_TEST_SRC_DIR} || die");
-        }
+        /**
+         * unzip ${P}-test-sources.jar, uncomment it after the switch
+         * --test-source-uri is supported
+         if (mavenProject.hasTests()) {
+            writer.println("\tmkdir -p \"${S}\"/${JAVA_TEST_SRC_DIR}");
+            writer.println(
+                    "\tunzip \"${DISTDIR}\"/${P}-test-sources.jar" +
+                    " -d \"${S}\"/${JAVA_TEST_SRC_DIR} || die");
+         }
+        */
 
         writer.println("}");
     }

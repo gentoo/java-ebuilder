@@ -50,7 +50,7 @@ public class MavenParser {
                         mavenCache.getDependency("junit", "junit", "4.11")));
             }
 
-	    result.add(mavenProject);
+            result.add(mavenProject);
         });
 
         return result;
@@ -536,9 +536,9 @@ public class MavenParser {
                     case "artifactId":
                         artifactId = reader.getElementText();
 
-			/* jsch.agentproxy is an empty artifact. */
+                        /* jsch.agentproxy is an empty artifact. */
                         // TODO: this should go to a config file to ignore some artifacts
-			if (artifactId.equals("jsch.agentproxy")) {
+                        if (artifactId.equals("jsch.agentproxy")) {
                             return;
                         }
                         break;
@@ -552,12 +552,12 @@ public class MavenParser {
                         version = reader.getElementText().replace(
                                 "-SNAPSHOT", "");
 
-			/* crazy version from
-			 * org.khronos:opengl-api:gl1.1-android-2.1_r1 */
+                        /* crazy version from
+                         * org.khronos:opengl-api:gl1.1-android-2.1_r1 */
                         // TODO: this should go to a file mapping crazy versions
-			if (version.equals("gl1.1-android-2.1_r1")) {
-			    version = "2.1.1";
-			}
+                        if (version.equals("gl1.1-android-2.1_r1")) {
+                            version = "2.1.1";
+                        }
                         break;
                     default:
                         consumeElement(reader);

@@ -261,7 +261,7 @@ public class PortageParser {
         String groupId = null;
         String artifactId = null;
         String mavenVersion = null;
-	String[] mavenProvide = null;
+        String[] mavenProvide = null;
 
         try (final BufferedReader reader = new BufferedReader(
                 new InputStreamReader(Files.newInputStream(ebuild.toPath(),
@@ -304,7 +304,7 @@ public class PortageParser {
                                 replace("\"", "");
                     } else if (line.startsWith("MAVEN_PROVIDES=")) {
                         mavenProvide = line.substring("MAVEN_PROVIDES=".length()).
-				replace("\"", "").split(" ");
+                                replace("\"", "").split(" ");
                     }
                 }
 
@@ -366,7 +366,7 @@ public class PortageParser {
         cacheItems.add(new CacheItem(category, pkg, version, slot, useFlag,
                 groupId, artifactId, mavenVersion, eclasses));
 
-	if (mavenProvide != null) {
+        if (mavenProvide != null) {
             for (String providedId: mavenProvide) {
                 final String[] parts = providedId.split(":");
                 cacheItems.add(new CacheItem(category, pkg, version, slot, useFlag,
@@ -407,7 +407,7 @@ public class PortageParser {
     private String processSlot(final String slot,
             final Path ebuildMetadata) {
         //final metadata = new File(ebuildMetadata.toString());
-	String result = slot;
+        String result = slot;
         try (final BufferedReader reader = new BufferedReader(
                 new InputStreamReader(Files.newInputStream(ebuildMetadata,
                         StandardOpenOption.READ)))) {
@@ -427,7 +427,7 @@ public class PortageParser {
         } catch (final IOException ex) {
             throw new RuntimeException("Failed to read ebuild", ex);
         }
-	return result;
+        return result;
     }
 
     /**

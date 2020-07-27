@@ -23,5 +23,5 @@ Refreshing cache:
 --refresh-cache|-c                 refreshes java ebuild cache
 
 Common:
---cache-file		           location of cache file (default is
+--cache-file                       location of cache file (default is
                                    ~/.java-ebuilder/cache)
