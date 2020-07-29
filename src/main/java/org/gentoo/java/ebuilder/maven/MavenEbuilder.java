@@ -624,7 +624,13 @@ public class MavenEbuilder {
 
         writer.println('"');
         writer.println();
-        writer.println("inherit java-pkg-2 java-pkg-simple");
+        writer.print("inherit java-pkg-2 java-pkg-simple");
+
+        if (config.isFromMavenCentral()) {
+            writer.print(" java-pkg-maven");
+        }
+
+        writer.println("");
     }
 
     /**
@@ -849,11 +855,6 @@ public class MavenEbuilder {
                 writer.println(')');
             }
         }
-
-        if (config.isFromMavenCentral()) {
-            writeMavenUnpack(mavenProject, writer);
-        }
-
     }
 
     /**
@@ -864,33 +865,5 @@ public class MavenEbuilder {
     private void writeSourceDir(final PrintWriter writer) {
         writer.println();
         writer.println("S=\"${WORKDIR}\"");
-    }
-
-    /**
-     * modify src_unpack() if we use Maven distributed source codes.
-     *
-     * @param writer ebuild writer
-     */
-    private void writeMavenUnpack(final MavenProject mavenProject,
-            final PrintWriter writer) {
-        writer.println();
-        writer.println("src_unpack() {");
-        writer.println("\tmkdir -p \"${S}\"/${JAVA_SRC_DIR}");
-        writer.println(
-                "\tunzip \"${DISTDIR}\"/${P}-sources.jar" +
-                " -d \"${S}\"/${JAVA_SRC_DIR} || die");
-
-        /**
-         * unzip ${P}-test-sources.jar, uncomment it after the switch
-         * --test-source-uri is supported
-         if (mavenProject.hasTests()) {
-            writer.println("\tmkdir -p \"${S}\"/${JAVA_TEST_SRC_DIR}");
-            writer.println(
-                    "\tunzip \"${DISTDIR}\"/${P}-test-sources.jar" +
-                    " -d \"${S}\"/${JAVA_TEST_SRC_DIR} || die");
-         }
-        */
-
-        writer.println("}");
     }
 }
