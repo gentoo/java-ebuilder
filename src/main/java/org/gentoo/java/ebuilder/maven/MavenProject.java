@@ -42,6 +42,10 @@ public class MavenProject {
      */
     private Boolean hasTests;
     /**
+     * Lisences.
+     */
+    private List<String> licenses = new ArrayList<>(10);
+    /**
      * Homepage URL.
      */
     private String homepage;
@@ -102,6 +106,15 @@ public class MavenProject {
      */
     public void addDependency(final MavenDependency dependency) {
         dependencies.add(dependency);
+    }
+
+    /**
+     * Adds license to {@link #licenses}.
+     *
+     * @param license {@link #licenses}
+     */
+    public void addLicense(final String license) {
+        licenses.add(license);
     }
 
     /**
@@ -294,6 +307,15 @@ public class MavenProject {
      */
     public void setHomepage(final String homepage) {
         this.homepage = homepage;
+    }
+
+    /**
+     * Getter for {@link #licenses}.
+     *
+     * @return space separated licenses
+     */
+    public String getLicenses() {
+        return String.join(" ", licenses);
     }
 
     /**

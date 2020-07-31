@@ -16,6 +16,7 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import org.gentoo.java.ebuilder.Config;
+import org.gentoo.java.ebuilder.maven.MavenLicenses;
 
 /**
  * Parser for parsing pom.xml into project collector class.
@@ -419,6 +420,9 @@ public class MavenParser {
                     case "groupId":
                         mavenProject.setGroupId(reader.getElementText());
                         break;
+                    case "licenses":
+                        parseProjectLicenses(mavenProject, reader);
+                        break;
                     case "properties":
                         parseProjectProperties(mavenProject, reader);
                         break;
@@ -567,6 +571,68 @@ public class MavenParser {
                         artifactId, version, scope, mavenCache.getDependency(
                                 groupId, artifactId, version)));
 
+                return;
+            }
+        }
+    }
+
+    /**
+     * Parses project licenses.
+     *
+     * @param mavenProject maven project instance
+     * @param reader       XML stream reader
+     *
+     * @throws XMLStreamException Thrown if problem occurred while reading the
+     *                            XML stream.
+     */
+    private void parseProjectLicenses(final MavenProject mavenProject,
+            final XMLStreamReader reader)
+            throws XMLStreamException {
+        MavenLicenses mavenLic = new MavenLicenses();
+
+        while (reader.hasNext()) {
+            reader.next();
+
+            if (reader.isStartElement()) {
+                switch (reader.getLocalName()) {
+                    case "license":
+                        parseProjectLicense(mavenLic, mavenProject, reader);
+                        break;
+                    default:
+                        consumeElement(reader);
+                }
+            } else if (reader.isEndElement()) {
+                return;
+            }
+        }
+    }
+
+    /**
+     * Parses project license.
+     *
+     * @param mavenProject maven project instance
+     * @param reader       XML stream reader
+     *
+     * @throws XMLStreamException Thrown if problem occurred while reading the
+     *                            XML stream.
+     */
+    private void parseProjectLicense(final MavenLicenses mavenLicenses,
+            final MavenProject mavenProject, final XMLStreamReader reader)
+            throws XMLStreamException {
+        while (reader.hasNext()) {
+            reader.next();
+
+            if (reader.isStartElement()) {
+                switch (reader.getLocalName()) {
+                    case "name":
+                        mavenProject.addLicense(
+                                mavenLicenses.getEquivalentLicense(
+                                reader.getElementText()));
+                        break;
+                    default:
+                        consumeElement(reader);
+                }
+            } else if (reader.isEndElement()) {
                 return;
             }
         }

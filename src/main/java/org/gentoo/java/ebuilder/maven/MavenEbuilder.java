@@ -702,6 +702,8 @@ public class MavenEbuilder {
 
         if (config.getLicense() != null) {
             writer.print(config.getLicense());
+        } else {
+            writer.print(mavenProject.getLicenses());
         }
 
         writer.println('"');
