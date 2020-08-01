@@ -4,7 +4,9 @@ import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Contains information about maven project collected from pom.xml.
@@ -44,7 +46,7 @@ public class MavenProject {
     /**
      * Lisences.
      */
-    private List<String> licenses = new ArrayList<>(10);
+    private Set<String> licenses = new HashSet<>(10);
     /**
      * Homepage URL.
      */
@@ -113,8 +115,12 @@ public class MavenProject {
      *
      * @param license {@link #licenses}
      */
-    public void addLicense(final String license) {
-        licenses.add(license);
+    public void addLicense(final String portageLicenses) {
+        final String[] parts = portageLicenses.split(":");
+
+        for (String eachLicense: parts) {
+            licenses.add(eachLicense);
+        }
     }
 
     /**

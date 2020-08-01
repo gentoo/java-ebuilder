@@ -51,7 +51,8 @@ public class MavenLicenses {
          * @return license identifier that works with Portage
          */
         public String getEquivalentLicense(String licenseName) {
-            final String portageLicense = licenseMap.get(licenseName);
+            final String portageLicense =
+                    licenseMap.get(licenseName.toLowerCase());
 
             if (portageLicense == null) {
                 return "!!!equivalentPortageLicenseName-not-found!!!";
