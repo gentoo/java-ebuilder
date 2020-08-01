@@ -598,7 +598,7 @@ public class MavenEbuilder {
      * @param writer ebuild writer
      */
     private void writeHeader(final PrintWriter writer) {
-        writer.printf("# Copyright 1999-%d Gentoo Foundation\n",
+        writer.printf("# Copyright 1999-%d Gentoo Authors\n",
                 LocalDate.now().getYear());
         writer.println("# Distributed under the terms of the GNU General "
                 + "Public License v2");

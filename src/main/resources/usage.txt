@@ -2,13 +2,16 @@ Usage: java-ebuilder <args>
 
 Generating ebuild:
 --download-uri|-u <uri>            uri that goes to SRC_URI
+--binjar-uri <uri>                 uri that goes to binary jar
 --dump-projects|-d                 outputs information about parsed projects
                                    (useful for debugging)
 --ebuild|-e <file>                 path to ebuild that should be created
 --force-min-java-version <version> force minimum JDK/JRE version in dependencies
+--from-maven-central               make java-ebuilder inherit java-pkg-maven.eclass
 --generate-ebuild|-g               generates ebuild from pom.xml
 --keywords|-k <keywords>           arch keywords
---license|-l <license>             license name
+--license|-l <license>             license name, if it is not specified,
+                                   java-ebuilder will determine LICENSE from pom.xml
 --pom|-p <file>                    path to pom.xml that should be parsed,
                                    the path must be relative to workdir (can be
                                    specified multiple times)
