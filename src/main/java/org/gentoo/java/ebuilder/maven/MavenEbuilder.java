@@ -364,9 +364,18 @@ public class MavenEbuilder {
             });
         }
 
+        if (config.isFromMavenCentral()) {
+            writer.print(" --from-maven-central");
+        }
+
         if (config.getDownloadUri() != null) {
             writer.print(" --download-uri ");
             writer.print(config.getDownloadUri());
+        }
+
+        if (config.hasBinjarUri()) {
+            writer.print(" --binjar-uri ");
+            writer.print(config.getBinjarUri());
         }
 
         if (config.getLicense() != null) {
