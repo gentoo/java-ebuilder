@@ -627,7 +627,9 @@ public class MavenParser {
                     case "name":
                         mavenProject.addLicense(
                                 mavenLicenses.getEquivalentLicense(
-                                reader.getElementText()));
+                                reader.getElementText().
+                                        trim().
+                                        replaceAll("[\n ]+", " ")));
                         break;
                     default:
                         consumeElement(reader);
