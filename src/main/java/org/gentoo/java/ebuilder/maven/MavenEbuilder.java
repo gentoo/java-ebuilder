@@ -34,6 +34,12 @@ public class MavenEbuilder {
             = Pattern.compile("^.*/\\$\\{P\\}-sources.((?:\\.tar)\\.\\S+|(?:\\.jar))$");
 
     /**
+     * Pattern for checking whether the dependency is specifying versions.
+     */
+    private static final Pattern PATTERN_EBUILD_VERSIONING
+            = Pattern.compile("^[~=<>].*$");
+
+    /**
      * Generates ebuild from the collected information at the specified path.
      *
      * @param config        application configuration
@@ -88,14 +94,20 @@ public class MavenEbuilder {
                         sbCP.append(',');
                     }
 
-                    final String[] parts = dependency.getSystemDependency().
+                    final String ebuildDependency =
+                            dependency.getSystemDependency();
+
+                    final String[] parts = ebuildDependency.
                             replaceAll(".*/", "").
                             replaceAll("\\[.*\\]", "").
                             split(":");
                     String pn = parts[0].replaceAll("-r\\d+$", "");
 
                     if (parts.length == 2) {
-                        pn = pn.substring(0, pn.lastIndexOf('-'));
+                        if (PATTERN_EBUILD_VERSIONING.
+                                matcher(ebuildDependency).matches()) {
+                            pn = pn.substring(0, pn.lastIndexOf('-'));
+                        }
 
                         if (!parts[1].equals("0")) {
                             pn += "-" + parts[1];
