@@ -19,6 +19,17 @@ import org.gentoo.java.ebuilder.Config;
 public class MavenEbuilder {
 
     /**
+     * The fallback description if no description is found in pom.xml.
+     */
+    private static final String defaultDescription = "${MAVEN_ID}";
+
+    /**
+     * The fallback homepage if no homepage is found in pom.xml.
+     */
+    private static final String defaultHomepage
+            = "https://wiki.gentoo.org/wiki/No_homepage";
+
+    /**
      * EAPI version.
      */
     private static final String EAPI = "7";
@@ -694,10 +705,22 @@ public class MavenEbuilder {
             final MavenProject mavenProject, final PrintWriter writer) {
         writer.println();
 
+        // write MAVEN_ID ahead of DESCRIPTION,
+        //   becase defaultDescription need ${MAVEN_ID}
+        writer.print("MAVEN_ID=\"");
+        writer.print(mavenProject.getGroupId());
+        writer.print(':');
+        writer.print(mavenProject.getArtifactId());
+        writer.print(':');
+        writer.print(mavenProject.getVersion());
+        writer.println('"');
+
         writer.print("DESCRIPTION=\"");
 
         if (mavenProject.getDescription() != null) {
             writer.print(mavenProject.getDescription().replace("\"", "\\\""));
+        } else {
+            writer.print(defaultDescription);
         }
 
         writer.println('"');
@@ -706,6 +729,8 @@ public class MavenEbuilder {
 
         if (mavenProject.getHomepage() != null) {
             writer.print(mavenProject.getHomepage());
+        } else {
+            writer.print(defaultHomepage);
         }
 
         writer.println('"');
@@ -735,14 +760,6 @@ public class MavenEbuilder {
 
         writer.print("KEYWORDS=\"");
         writer.print(config.getKeywords());
-        writer.println('"');
-
-        writer.print("MAVEN_ID=\"");
-        writer.print(mavenProject.getGroupId());
-        writer.print(':');
-        writer.print(mavenProject.getArtifactId());
-        writer.print(':');
-        writer.print(mavenProject.getVersion());
         writer.println('"');
     }
 
