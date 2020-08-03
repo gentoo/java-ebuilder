@@ -219,7 +219,9 @@ public class Main {
                     try {
                         config.setBinjarUri(new URI(args[i]));
                     } catch (final URISyntaxException ex) {
-                        config.getErrorWriter().println("ERROR: BINJAR_URI " + args[i]
+                        config.getErrorWriter().println(
+                                "ERROR: URI goes to binary jar "
+                                + args[i]
                                 + " is not valid.");
                     }
 
@@ -291,6 +293,19 @@ public class Main {
                 case "-s":
                     i++;
                     config.setSlot(args[i]);
+                    break;
+                case "--test-src-uri":
+                    i++;
+
+                    try {
+                        config.setTestSrcUri(new URI(args[i]));
+                    } catch (final URISyntaxException ex) {
+                        config.getErrorWriter().println(
+                                "ERROR: URI that goes to src code for testing"
+                                + args[i]
+                                + " is not valid.");
+                    }
+
                     break;
                 case "--workdir":
                 case "-w":

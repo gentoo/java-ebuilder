@@ -6,9 +6,11 @@ import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.Set;
 import org.gentoo.java.ebuilder.Config;
 
 /**
@@ -30,6 +32,14 @@ public class MavenEbuilder {
             = "https://wiki.gentoo.org/wiki/No_homepage";
 
     /**
+     * The extra dependency for framework "pkgdiff"
+     */
+    private static final String dependencyForPkgdiff
+            = "\n\t\tamd64? (\n\t\t\tdev-util/pkgdiff"
+              + "\n\t\t\tdev-util/japi-compliance-checker"
+              + "\n\t\t)";
+
+    /**
      * EAPI version.
      */
     private static final String EAPI = "7";
@@ -42,7 +52,13 @@ public class MavenEbuilder {
      * Pattern for checking whether download tarball name matches expected name.
      */
     private static final Pattern PATTERN_TARBALL_NAME
-            = Pattern.compile("^.*/\\$\\{P\\}-sources.((?:\\.tar)\\.\\S+|(?:\\.jar))$");
+            = Pattern.compile("^.*/\\$\\{P\\}-sources((?:\\.tar)\\.\\S+|(?:\\.jar))$");
+
+    /**
+     * Pattern for checking whether download tarball for testing name matches expected name.
+     */
+    private static final Pattern PATTERN_TEST_TARBALL_NAME
+            = Pattern.compile("^.*/\\$\\{P\\}-test-sources\\.jar$");
 
     /**
      * Pattern for checking whether the dependency is specifying versions.
@@ -139,9 +155,10 @@ public class MavenEbuilder {
      * @return testing framework name or null
      */
     private String determineTestingFramework(
-            final List<MavenProject> mavenProjects) {
+            final List<MavenProject> mavenProjects, final Config config) {
         for (final MavenProject mavenProject : mavenProjects) {
-            final String result = determineTestingFramework(mavenProject);
+            final String result
+                    = determineTestingFramework(mavenProject, config);
 
             if (result != null) {
                 return result;
@@ -158,24 +175,61 @@ public class MavenEbuilder {
      *
      * @return testing framework name or null
      */
-    private String determineTestingFramework(final MavenProject mavenProject) {
+    private String determineTestingFramework(
+            final MavenProject mavenProject, final Config config) {
+        Set<String> frameworks = new HashSet<>(10);
+
         for (final MavenDependency dependency : mavenProject.
                 getTestDependencies()) {
-            if ("junit".equals(dependency.getGroupId())
-                    && "junit".equals(dependency.getArtifactId())) {
-                return "junit";
-            }
+            frameworks.add(determineTestingFrameworkByDependency(dependency));
         }
 
         for (final MavenDependency dependency : mavenProject.
                 getCommonDependencies()) {
-            if ("junit".equals(dependency.getGroupId())
-                    && "junit".equals(dependency.getArtifactId())) {
-                return "junit";
-            }
+            frameworks.add(determineTestingFrameworkByDependency(dependency));
         }
 
-        return null;
+        if (config.hasBinjarUri()) {
+            frameworks.add("pkgdiff");
+        }
+
+        frameworks.remove(null);
+
+        if (frameworks.size() == 0) {
+            return null;
+        } else {
+            return String.join(" ", frameworks);
+        }
+    }
+
+    /**
+     * Determines the testing framework based on project dependencies.
+     *
+     * @param mavenProject maven project
+     *
+     * @return testing framework name or null
+     */
+    private String determineTestingFrameworkByDependency(
+            final MavenDependency dependency) {
+        /** TODO: missing support for
+         *    "org.junit.vintage:junit-vintage-engine" tests
+         *    "POJO" tests
+         *    "spock" tests
+         *    "cucumber" tests
+         */
+        if ("junit".equals(dependency.getGroupId())
+                && "junit".equals(dependency.getArtifactId())) {
+            return "junit";
+        } else if ("org.testng".equals(dependency.getGroupId())
+                && "testng".equals(dependency.getArtifactId())) {
+            return "testng";
+        } else if ("org.junit.jupiter".equals(dependency.getGroupId())
+                && "junit-jupiter-engine".
+                    equals(dependency.getArtifactId())) {
+            return "junit-5";
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -275,40 +329,23 @@ public class MavenEbuilder {
     }
 
     /**
-     * If the tarball name does not match pattern ${P}-test.ext then we will update
-     * it to store the tarball as ${P}-test.ext.
+     * If the tarball name does not match pattern ${P}-test-sources.jar
+     * we will update it to store the tarball as ${P}-test-sources.jar.
+     * Note that we only need it for Maven central artifacts, so it is
+     * safe to assume that the extension should be ".jar".
      *
      * @param TestSrcUri source test URI
      *
      * @return either original source test URI or updated source test URI
+     */
     private String improveTestSrcUri(final String TestSrcUri) {
         if (PATTERN_TEST_TARBALL_NAME.matcher(TestSrcUri).matches()) {
             return TestSrcUri;
         }
 
-        final Matcher matcher = PATTERN_TARBALL_EXTENSION.matcher(TestSrcUri);
-
-        /**
-         * We do not know how to get the extension so we will leave the tarball
-         * name as it is.
-        /
-        if (!matcher.matches()) {
-            return TestSrcUri;
-        }
-
-        return TestSrcUri + " -> " + "${P}-test" + matcher.group(1);
+        return TestSrcUri + " -> " + "${P}-test-sources.jar";
     }
-     */
 
-    /**
-     * Merges maven project system dependencies of specified type and removed
-     * duplicates.
-     *
-     * @param mavenProjects list of maven projects
-     * @param type          type of dependencies ("common", "compile", "runtime"
-     *                      and "test")
-     *
-     * @return list of merged dependencies
     /**
      * Merges maven project system dependencies of specified type and removed
      * duplicates.
@@ -399,6 +436,11 @@ public class MavenEbuilder {
         if (config.hasBinjarUri()) {
             writer.print(" --binjar-uri ");
             writer.print(config.getBinjarUri());
+        }
+
+        if (config.hasTestSrcUri()) {
+            writer.print(" --test-src-uri ");
+            writer.print(config.getTestSrcUri());
         }
 
         if (config.getLicense() != null) {
@@ -526,13 +568,18 @@ public class MavenEbuilder {
             writer.println("\t)");
         }
 
-        if (!testDependencies.isEmpty()) {
+        if (!testDependencies.isEmpty() || config.hasBinjarUri()) {
             writer.println("\ttest? (");
 
             testDependencies.stream().forEach((dependency) -> {
                 writer.print("\t\t");
                 writer.println(dependency);
             });
+
+            // TODO: check whether amd64 is inside KEYWORDS
+            if (config.hasBinjarUri()) {
+                writer.println(dependencyForPkgdiff);
+            }
 
             writer.println("\t)");
         }
@@ -734,6 +781,10 @@ public class MavenEbuilder {
             writer.print("\n\t" + improveBinjarUri(
                     replaceWithVars(config.getBinjarUri().toString(), config)));
         }
+        if (config.hasTestSrcUri()) {
+            writer.print("\n\t" + improveTestSrcUri(
+                    replaceWithVars(config.getTestSrcUri().toString(), config)));
+        }
         writer.println('"');
 
         writer.print("LICENSE=\"");
@@ -838,7 +889,8 @@ public class MavenEbuilder {
             writer.println("JAVA_BINJAR_FILENAME=\"${P}-bin.jar\"");
         }
 
-        final String testingFramework = determineTestingFramework(mavenProject);
+        final String testingFramework
+                = determineTestingFramework(mavenProject, config);
         boolean firstTestVar = true;
 
         if (testingFramework != null) {

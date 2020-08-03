@@ -99,6 +99,14 @@ public class Config {
      */
     private final PrintWriter stdoutWriter;
     /**
+     * URI that goes to *-test-sources.jar distributed by maven central
+     */
+    private URI testSrcUri;
+    /**
+     * whether testSrcUri is set and whether the pkg is from maven central.
+     */
+    private boolean testSrcUriExists;
+    /**
      * Path to workdir.
      */
     private Path workdir;
@@ -378,6 +386,35 @@ public class Config {
     }
 
     /**
+     * Getter for {@link #testSrcUri}.
+     *
+     * @return {@link #testSrcUri}
+     */
+    public URI getTestSrcUri() {
+        return testSrcUri;
+    }
+
+    /**
+     * Getter for {@link #testSrcUriExists}.
+     *
+     * @return {@link #testSrcUriExists}
+     */
+    public boolean hasTestSrcUri() {
+        return testSrcUriExists;
+    }
+
+    /**
+     * Setter for {@link #testSrcUri}.
+     *
+     * @param testSrcUri {@link #testSrcUri}
+     */
+    public void setTestSrcUri(final URI testSrcUri) {
+        this.testSrcUri = testSrcUri;
+        if (isFromMavenCentral()) {
+            this.testSrcUriExists = true;
+        }
+    }
+    /**
      * Getter for {@link #workdir}.
      *
      * @return {@link #workdir}
@@ -429,6 +466,9 @@ public class Config {
      */
     public void setFromMavenCentral(final boolean fromMavenCentral) {
         this.fromMavenCentral = fromMavenCentral;
+        if (getTestSrcUri() != null) {
+            this.testSrcUriExists = true;
+        }
     }
 
     /**

@@ -561,6 +561,15 @@ public class MavenProject {
     }
 
     /**
+     * Setter for {@link #hasTests}
+     *
+     * @param hasTests {@link #hasTests}
+     */
+    public void setHasTests(boolean hasTests) {
+        this.hasTests = hasTests;
+    }
+
+    /**
      * Returns dependencies based on the specified scopes.
      *
      * @param scopes array of scopes

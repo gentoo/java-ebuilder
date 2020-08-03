@@ -44,11 +44,16 @@ public class MavenParser {
             final MavenProject mavenProject = parsePom(config, mavenCache,
                     pomFile, effectivePom);
 
+            // TODO: I suppose they should go to "POJO" tests
             if (mavenProject.hasTests()
                     && mavenProject.getTestDependencies().isEmpty()) {
                 mavenProject.addDependency(new MavenDependency(
                         "junit", "junit", "4.11", "test",
                         mavenCache.getDependency("junit", "junit", "4.11")));
+            }
+
+            if (config.hasTestSrcUri()) {
+                mavenProject.setHasTests(true);
             }
 
             result.add(mavenProject);

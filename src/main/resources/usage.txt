@@ -3,6 +3,7 @@ Usage: java-ebuilder <args>
 Generating ebuild:
 --download-uri|-u <uri>            uri that goes to SRC_URI
 --binjar-uri <uri>                 uri that goes to binary jar
+--test-src-uri <uri>               uri that goes to test-sources from Maven Central
 --dump-projects|-d                 outputs information about parsed projects
                                    (useful for debugging)
 --ebuild|-e <file>                 path to ebuild that should be created
