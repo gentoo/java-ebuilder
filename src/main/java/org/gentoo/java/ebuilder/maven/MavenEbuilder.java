@@ -450,10 +450,8 @@ public class MavenEbuilder {
                 mavenProjects, "runtime");
         final boolean hasCDepend = !commonDependencies.isEmpty();
 
-        writer.println();
-
         if (hasCDepend) {
-            writer.println("# Common dependencies");
+            writer.println("\n# Common dependencies");
 
             mavenProjects.stream().
                     filter((mavenProject)
@@ -474,11 +472,9 @@ public class MavenEbuilder {
             writer.println('"');
         }
 
-        writer.println();
-
         if (!compileDependencies.isEmpty()
                 || !testDependencies.isEmpty()) {
-            writer.println("# Compile dependencies");
+            writer.println("\n# Compile dependencies");
 
             mavenProjects.stream().
                     filter((mavenProject)
@@ -543,10 +539,8 @@ public class MavenEbuilder {
 
         writer.println('"');
 
-        writer.println();
-
         if (!runtimeDependencies.isEmpty()) {
-            writer.println("# Runtime dependencies");
+            writer.println("\n# Runtime dependencies");
 
             mavenProjects.stream().
                     filter((mavenProject)
@@ -558,7 +552,7 @@ public class MavenEbuilder {
                     });
         }
 
-        writer.print("RDEPEND=\"\n\t>=virtual/jre-");
+        writer.print("\nRDEPEND=\"\n\t>=virtual/jre-");
         writer.print(getMinTargetVersion(
                 mavenProjects, config.getForceMinJavaVersion()));
         writer.println(":*");
@@ -574,8 +568,6 @@ public class MavenEbuilder {
                 writer.println(dependency);
             });
         }
-
-
 
         writer.println('"');
     }
@@ -680,14 +672,14 @@ public class MavenEbuilder {
         // Global:
         // JAVA_GENTOO_CLASSPATH
         // JAVA_CLASSPATH_EXTRA
-        // JAVA_GENTOO_TEST_CLASSPATH
+        // JAVA_TEST_GENTOO_CLASSPATH
         // JAVA_ENCODING (unless it differs in projects)
         // Compile (jars, doc):
         // JAVA_SRC_DIR
         // JAVA_RESOURCE_DIRS
         // JAVA_ENCODING (in case project encodings are different)
         // Test:
-        // JAVA_TESTING_FRAMEWORK
+        // JAVA_TESTING_FRAMEWORKS
         // JAVA_TEST_SRC_DIR
         // JAVA_TEST_RESOURCE_DIRS
         // Install (jars, doc, sources):
@@ -855,7 +847,7 @@ public class MavenEbuilder {
                 firstTestVar = false;
             }
 
-            writer.print("JAVA_TESTING_FRAMEWORK=\"");
+            writer.print("JAVA_TESTING_FRAMEWORKS=\"");
             writer.print(testingFramework);
             writer.println('"');
         }
@@ -866,7 +858,7 @@ public class MavenEbuilder {
                 firstTestVar = false;
             }
 
-            writer.print("JAVA_GENTOO_TEST_CLASSPATH=\"");
+            writer.print("JAVA_TEST_GENTOO_CLASSPATH=\"");
             writer.print(createClassPath(mavenProject.getTestDependencies()));
             writer.println('"');
         }
