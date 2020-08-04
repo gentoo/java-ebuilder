@@ -4,9 +4,9 @@ import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 /**
  * Contains information about maven project collected from pom.xml.
@@ -46,7 +46,7 @@ public class MavenProject {
     /**
      * Lisences.
      */
-    private Set<String> licenses = new HashSet<>(10);
+    private SortedSet<String> licenses = new TreeSet<>(10);
     /**
      * Homepage URL.
      */
