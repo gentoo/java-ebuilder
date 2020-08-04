@@ -7,7 +7,10 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import org.gentoo.java.ebuilder.maven.JavaVersion;
+import org.gentoo.java.ebuilder.portage.KeywordComparator;
 
 /**
  * Container for command line configuration.
@@ -73,7 +76,7 @@ public class Config {
     /**
      * Arch keywords.
      */
-    private String keywords;
+    private SortedSet<String> keywords = new TreeSet<>(new KeywordComparator());
     /**
      * License name.
      */
@@ -301,16 +304,33 @@ public class Config {
      * @return {@link #keywords}
      */
     public String getKeywords() {
-        return keywords;
+        return String.join(" ", keywords);
     }
 
     /**
-     * Setter for {@link #keywords}.
+     * add keyword to {@link #keywords}.
      *
-     * @param keywords {@link #keywords}
+     * @param keyword String that contains one or more keywords
      */
-    public void setKeywords(final String keywords) {
-        this.keywords = keywords;
+    public void addKeywords(final String keywords) {
+        String[] parts = keywords.split(" ");
+
+        /**
+         * Make "-amd64" replace "amd64 ~amd64"
+         * Make "amd64" replace "~amd64"
+         */
+        for (String part : parts) {
+            if (part.startsWith("-")) {
+                this.keywords.remove(part.substring(1));
+                this.keywords.remove("~" + part.substring(1));
+                this.keywords.add(part);
+            } else if (part.startsWith("~")) {
+                this.keywords.add(part);
+            } else {
+                this.keywords.remove("~" + part);
+                this.keywords.add(part);
+            }
+        }
     }
 
     /**

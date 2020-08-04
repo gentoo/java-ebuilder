@@ -46,7 +46,7 @@ public class MavenProject {
     /**
      * Lisences.
      */
-    private SortedSet<String> licenses = new TreeSet<>(10);
+    private SortedSet<String> licenses = new TreeSet<>();
     /**
      * Homepage URL.
      */

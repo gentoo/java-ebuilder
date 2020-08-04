@@ -10,7 +10,7 @@ Generating ebuild:
 --force-min-java-version <version> force minimum JDK/JRE version in dependencies
 --from-maven-central               make java-ebuilder inherit java-pkg-maven.eclass
 --generate-ebuild|-g               generates ebuild from pom.xml
---keywords|-k <keywords>           arch keywords
+--keywords|-k <keywords>           arch keywords (can be specified multiple times)
 --license|-l <license>             license name, if it is not specified,
                                    java-ebuilder will determine LICENSE from pom.xml
 --pom|-p <file>                    path to pom.xml that should be parsed,

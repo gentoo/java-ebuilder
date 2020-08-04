@@ -262,7 +262,7 @@ public class Main {
                 case "--keywords":
                 case "-k":
                     i++;
-                    config.setKeywords(args[i]);
+                    config.addKeywords(args[i]);
                     break;
                 case "--license":
                 case "-l":
