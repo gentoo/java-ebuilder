@@ -211,11 +211,9 @@ public class MavenEbuilder {
      */
     private String determineTestingFrameworkByDependency(
             final MavenDependency dependency) {
-        /** TODO: missing support for
-         *    "org.junit.vintage:junit-vintage-engine" tests
+        /** TODO: missing determination for
          *    "POJO" tests
          *    "spock" tests
-         *    "cucumber" tests
          */
         if ("junit".equals(dependency.getGroupId())
                 && "junit".equals(dependency.getArtifactId())) {
@@ -224,9 +222,17 @@ public class MavenEbuilder {
                 && "testng".equals(dependency.getArtifactId())) {
             return "testng";
         } else if ("org.junit.jupiter".equals(dependency.getGroupId())
-                && "junit-jupiter-engine".
-                    equals(dependency.getArtifactId())) {
-            return "junit-5";
+                && "junit-jupiter-engine".equals(dependency.getArtifactId())) {
+            // java-pkg-simple do not support now
+            return "junit-juniper";
+        } else if ("org.junit.vintage".equals(dependency.getGroupId())
+                && "junit-vintage-engine".equals(dependency.getArtifactId())) {
+            // java-pkg-simple do not support now
+            return "junit-vintage";
+        } else if ("io.cucumber".equals(dependency.getGroupId())
+                && "cucumber-junit".equals(dependency.getArtifactId())) {
+            // java-pkg-simple do not support now
+            return "cucumber";
         } else {
             return null;
         }

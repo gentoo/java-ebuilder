@@ -276,7 +276,7 @@ public class MavenProject {
      * @param description {@link #description}
      */
     public void setDescription(final String description) {
-        this.description = description;
+        this.description = description.replaceAll("[\n ]+", " ");
     }
 
     /**
