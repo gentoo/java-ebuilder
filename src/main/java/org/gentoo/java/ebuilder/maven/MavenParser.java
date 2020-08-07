@@ -544,12 +544,6 @@ public class MavenParser {
                 switch (reader.getLocalName()) {
                     case "artifactId":
                         artifactId = reader.getElementText();
-
-                        /* jsch.agentproxy is an empty artifact. */
-                        // TODO: this should go to a config file to ignore some artifacts
-                        if (artifactId.equals("jsch.agentproxy")) {
-                            return;
-                        }
                         break;
                     case "groupId":
                         groupId = reader.getElementText();
@@ -632,9 +626,7 @@ public class MavenParser {
                     case "name":
                         mavenProject.addLicense(
                                 mavenLicenses.getEquivalentLicense(
-                                reader.getElementText().
-                                        trim().
-                                        replaceAll("[\n ]+", " ")));
+                                reader.getElementText()));
                         break;
                     default:
                         consumeElement(reader);

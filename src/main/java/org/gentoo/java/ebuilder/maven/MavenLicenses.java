@@ -34,7 +34,7 @@ public class MavenLicenses {
             try {
                 mapProperty.load(
                         this.getClass().getResourceAsStream(
-                        licenseMapFile));
+                                licenseMapFile));
             } catch (final IOException ex) {
                 throw new RuntimeException(
                         "Failed to read license map from resource", ex);
@@ -52,7 +52,9 @@ public class MavenLicenses {
          */
         public String getEquivalentLicense(String licenseName) {
             final String portageLicense =
-                    licenseMap.get(licenseName.toLowerCase());
+                    licenseMap.get(licenseName.trim().
+                                    replaceAll("[\n ]+", " ").
+                                    toLowerCase());
 
             if (portageLicense == null) {
                 return "!!!equivalentPortageLicenseName-not-found!!!";

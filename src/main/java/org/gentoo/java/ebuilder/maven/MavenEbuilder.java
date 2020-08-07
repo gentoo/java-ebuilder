@@ -223,15 +223,15 @@ public class MavenEbuilder {
             return "testng";
         } else if ("org.junit.jupiter".equals(dependency.getGroupId())
                 && "junit-jupiter-engine".equals(dependency.getArtifactId())) {
-            // java-pkg-simple do not support now
-            return "junit-juniper";
+            // java-pkg-simple does not support this framework
+            return "junit-jupiter";
         } else if ("org.junit.vintage".equals(dependency.getGroupId())
                 && "junit-vintage-engine".equals(dependency.getArtifactId())) {
-            // java-pkg-simple do not support now
+            // java-pkg-simple does not support this framework
             return "junit-vintage";
         } else if ("io.cucumber".equals(dependency.getGroupId())
                 && "cucumber-junit".equals(dependency.getArtifactId())) {
-            // java-pkg-simple do not support now
+            // java-pkg-simple does not support this framework
             return "cucumber";
         } else {
             return null;
@@ -582,7 +582,7 @@ public class MavenEbuilder {
                 writer.println(dependency);
             });
 
-            // TODO: check whether amd64 is inside KEYWORDS
+            // TODO: is it necessary to check whether amd64 is inside KEYWORDS?
             if (config.hasBinjarUri()) {
                 writer.println(dependencyForPkgdiff);
             }
