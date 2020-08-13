@@ -41,7 +41,7 @@ public class JavaVersion {
 
         versionNumber = Integer.parseInt(matcher.group(1), 10);
         if (versionNumber <= 8) {
-            this.versionString = "1." + Integer.toString(versionNumber);
+            this.versionString = "1.8";
         }
         else {
             this.versionString = versionString;
