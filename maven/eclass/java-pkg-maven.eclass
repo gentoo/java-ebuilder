@@ -37,26 +37,35 @@ EXPORT_FUNCTIONS src_unpack
 # the application. Give it a default value to handle src_unpack.
 : ${JAVA_TEST_SRC_DIR:=src/test/java}
 
+# @ECLASS-VARIABLE: JAVA_BINJAR_FILENAME
+# @DEFAULT_UNSET
+# @DESCRIPTION:
+# The name of the binary jar file that java-pkg-maven will not unpack
+
 # @FUNCTION: java-pkg-binjar_src_unpack
 # @DESCRIPTION:
 # Copy the binary jar into the expected place of java-pkg-simple.  Do
 # not extract files from archive.
 java-pkg-maven_src_unpack() {
+	# mkdir
+	mkdir -p "${S}"/${JAVA_TEST_SRC_DIR}\
+		|| die "Could not create ${JAVA_TEST_SRC_DIR}"
+	mkdir -p "${S}"/${JAVA_SRC_DIR}\
+		|| die "Could not create ${JAVA_SRC_DIR}"
+
+	# unpack files
 	for file in ${A}; do
 		case ${file} in
 			*-test-sources.jar)
-				mkdir -p "${S}"/${JAVA_TEST_SRC_DIR}\
-					|| die "Could not create ${JAVA_TEST_SRC_DIR}"
 				unzip -q -o "${DISTDIR}"/${file} -d "${S}"/${JAVA_TEST_SRC_DIR}\
 					|| die "Could not unzip source code for testing" ;;
 			*-sources.jar)
-				mkdir -p "${S}"/${JAVA_SRC_DIR}\
-					|| die "Could not create ${JAVA_SRC_DIR}"
 				unzip -q -o "${DISTDIR}"/${file} -d "${S}"/${JAVA_SRC_DIR}\
 					|| die "Could not unzip source code"
 				if [[ -d "${S}"/${JAVA_SRC_DIR}/META-INF ]] ; then
 					rm "${S}"/${JAVA_SRC_DIR}/META-INF -r || die
 				fi ;;
+			${JAVA_BINJAR_FILENAME}) ;;
 			*)
 				unpack ${file};;
 		esac
@@ -67,5 +76,7 @@ java-pkg-maven_src_unpack() {
 	cp "${S}"/${JAVA_SRC_DIR} "${S}"/${JAVA_RESOURCE_DIRS} -r || die
 	find "${S}"/${JAVA_RESOURCE_DIRS} -type f ! -name \*.properties \
 		-exec rm {} \; || die
+	find "${S}"/${JAVA_RESOURCE_DIRS} -type d -empty -delete || die
+	mkdir -p "${S}"/${JAVA_RESOURCE_DIRS}
 }
 
