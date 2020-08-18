@@ -32,14 +32,6 @@ public class MavenEbuilder {
             = "https://wiki.gentoo.org/wiki/No_homepage";
 
     /**
-     * The extra dependency for framework "pkgdiff"
-     */
-    private static final String dependencyForPkgdiff
-            = "\n\t\tamd64? (\n\t\t\tdev-util/pkgdiff"
-              + "\n\t\t\tdev-util/japi-compliance-checker"
-              + "\n\t\t)";
-
-    /**
      * EAPI version.
      */
     private static final String EAPI = "7";
@@ -389,7 +381,9 @@ public class MavenEbuilder {
 
             dependencies.stream().filter((dependency)
                     -> (dependency.getSystemDependency() != null
-                    && !result.contains(dependency.getSystemDependency()))).
+                    && !result.contains(dependency.getSystemDependency())
+                    && (determineTestingFrameworkByDependency(dependency) == null
+                        || type != "test"))).
                     forEach((dependency) -> {
                         result.add(dependency.getSystemDependency());
                     });
@@ -555,37 +549,45 @@ public class MavenEbuilder {
             writer.println("\tapp-arch/unzip");
         }
 
-        if (config.hasBinjarUri() && (hasCDepend || !compileDependencies.isEmpty())) {
-            writer.println("\t!binary? (");
+        if (config.hasBinjarUri()) {
+            if (hasCDepend && compileDependencies.isEmpty()) {
+                writer.println("\t!binary? ( ${CDEPEND} )");
+            } else if (!compileDependencies.isEmpty()) {
+                writer.println("\t!binary? (");
+
+                if (hasCDepend) {
+                    writer.println("\t\t${CDEPEND}");
+                }
+
+                if (!compileDependencies.isEmpty()) {
+                    compileDependencies.stream().forEach((dependency) -> {
+                        writer.print("\t\t");
+                        writer.println(dependency);
+                    });
+                }
+
+                writer.println("\t)");
+            }
+        } else {
+            if (hasCDepend) {
+                writer.println("\t${CDEPEND}");
+            }
+
+            if (!compileDependencies.isEmpty()) {
+                compileDependencies.stream().forEach((dependency) -> {
+                    writer.print('\t');
+                    writer.println(dependency);
+                });
+            }
         }
 
-        if (hasCDepend) {
-            writer.println("\t${CDEPEND}");
-        }
-
-        if (!compileDependencies.isEmpty()) {
-            compileDependencies.stream().forEach((dependency) -> {
-                writer.print('\t');
-                writer.println(dependency);
-            });
-        }
-
-        if (config.hasBinjarUri() && (hasCDepend || !compileDependencies.isEmpty())) {
-            writer.println("\t)");
-        }
-
-        if (!testDependencies.isEmpty() || config.hasBinjarUri()) {
+        if (!testDependencies.isEmpty()) {
             writer.println("\ttest? (");
 
             testDependencies.stream().forEach((dependency) -> {
                 writer.print("\t\t");
                 writer.println(dependency);
             });
-
-            // TODO: is it necessary to check whether amd64 is inside KEYWORDS?
-            if (config.hasBinjarUri()) {
-                writer.println(dependencyForPkgdiff);
-            }
 
             writer.println("\t)");
         }
@@ -611,7 +613,7 @@ public class MavenEbuilder {
         writer.println(":*");
 
         if (hasCDepend) {
-            writer.print("${CDEPEND}");
+            writer.print("\t${CDEPEND}");
         }
 
         if (!runtimeDependencies.isEmpty()) {
@@ -700,6 +702,26 @@ public class MavenEbuilder {
         }
 
         writer.println('"');
+
+        // write MAVEN_ID ahead of DESCRIPTION
+        writer.print("MAVEN_ID=\"");
+        writer.print(mavenProject.getGroupId());
+        writer.print(':');
+        writer.print(mavenProject.getArtifactId());
+        writer.print(':');
+        writer.print(mavenProject.getVersion());
+        writer.println('"');
+
+        // write testing framworks, so java-pkg-simple.eclass can deal with it
+        final String testingFramework
+                = determineTestingFramework(mavenProject, config);
+
+        if (testingFramework != null) {
+            writer.print("JAVA_TESTING_FRAMEWORKS=\"");
+            writer.print(testingFramework);
+            writer.println('"');
+        }
+
         writer.println();
         writer.print("inherit java-pkg-2 java-pkg-simple");
 
@@ -749,16 +771,6 @@ public class MavenEbuilder {
     private void writePackageInfo(final Config config,
             final MavenProject mavenProject, final PrintWriter writer) {
         writer.println();
-
-        // write MAVEN_ID ahead of DESCRIPTION,
-        //   becase defaultDescription need ${MAVEN_ID}
-        writer.print("MAVEN_ID=\"");
-        writer.print(mavenProject.getGroupId());
-        writer.print(':');
-        writer.print(mavenProject.getArtifactId());
-        writer.print(':');
-        writer.print(mavenProject.getVersion());
-        writer.println('"');
 
         writer.print("DESCRIPTION=\"");
 
@@ -895,20 +907,7 @@ public class MavenEbuilder {
             writer.println("JAVA_BINJAR_FILENAME=\"${P}-bin.jar\"");
         }
 
-        final String testingFramework
-                = determineTestingFramework(mavenProject, config);
         boolean firstTestVar = true;
-
-        if (testingFramework != null) {
-            if (firstTestVar) {
-                writer.println();
-                firstTestVar = false;
-            }
-
-            writer.print("JAVA_TESTING_FRAMEWORKS=\"");
-            writer.print(testingFramework);
-            writer.println('"');
-        }
 
         if (!mavenProject.getTestDependencies().isEmpty()) {
             if (firstTestVar) {
