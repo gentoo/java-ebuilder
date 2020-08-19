@@ -749,6 +749,7 @@ public class MavenEbuilder {
         // JAVA_CLASSPATH_EXTRA
         // JAVA_TEST_GENTOO_CLASSPATH
         // JAVA_ENCODING (unless it differs in projects)
+        // JAVA_NEED_TOOLS
         // Compile (jars, doc):
         // JAVA_SRC_DIR
         // JAVA_RESOURCE_DIRS
@@ -877,6 +878,8 @@ public class MavenEbuilder {
             writer.print(createClassPath(mavenProject.getCompileDependencies()));
             writer.println('"');
         }
+
+        writer.print(mavenProject.getExtraJars(config.getStdoutWriter()));
 
         writer.print("JAVA_SRC_DIR=\"");
         writer.print(replaceWithVars(config.getWorkdir().relativize(

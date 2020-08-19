@@ -424,6 +424,37 @@ public class MavenProject {
     }
 
     /**
+     * deal with scope == "system" dependencies
+     *
+     * @return lines of ebuild variables
+     */
+    @SuppressWarnings("unchecked")
+    public String getExtraJars(final PrintWriter writer) {
+        String ret = "";
+        List<MavenDependency> systemDependencies = getDependencies(new String[]{"system"});
+
+        for (final MavenDependency dependency : systemDependencies) {
+            switch (dependency.getGroupId()) {
+                case "com.sun":
+                    switch (dependency.getArtifactId()) {
+                        case "tools":
+                            ret += "JAVA_NEEDS_TOOLS=1\n";
+                            break;
+                        default:
+                            writer.println("Equivalent variable for " +
+                                dependency.getArtifactId() + " not found.");
+                    }
+                    break;
+                default:
+                    writer.println("Equivalent variable for " +
+                            dependency.getGroupId() + " not found.");
+            }
+        }
+
+        return ret;
+    }
+
+    /**
      * Getter for {@link #targetVersion}.
      *
      * @return {@link #targetVersion}
