@@ -12,6 +12,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.Set;
 import org.gentoo.java.ebuilder.Config;
+import org.gentoo.java.ebuilder.portage.MavenVersion;
 
 /**
  * Generates ebuild from maven project.
@@ -209,7 +210,12 @@ public class MavenEbuilder {
          */
         if ("junit".equals(dependency.getGroupId())
                 && "junit".equals(dependency.getArtifactId())) {
-            return "junit";
+            if (dependency.getMavenVersion().
+                    compareTo(new MavenVersion("3.9.9")) < 1) {
+                return "junit";
+            } else {
+                return "junit-4";
+            }
         } else if ("org.testng".equals(dependency.getGroupId())
                 && "testng".equals(dependency.getArtifactId())) {
             return "testng";
