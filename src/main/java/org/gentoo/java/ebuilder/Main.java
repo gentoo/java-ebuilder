@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.List;
@@ -63,16 +64,18 @@ public class Main {
      */
     private static void checkArgs(final Config config) {
         if (config.isRefreshCache()) {
-            if (config.getPortageTree() == null) {
-                config.setPortageTree(Paths.get("/usr/portage"));
+            if (config.getPortageTree().isEmpty()) {
+                config.addPortageTree(Paths.get("/usr/portage"));
             }
 
-            if (!config.getPortageTree().toFile().exists()) {
-                config.getErrorWriter().println("ERROR: Portage tree "
-                        + config.getPortageTree() + " does not exist.");
-                Runtime.getRuntime().exit(1);
+            for (Path portageTree : config.getPortageTree()) {
+                if (!portageTree.toFile().exists()) {
+                    config.getErrorWriter().println("ERROR: Portage tree "
+                            + portageTree + " does not exist.");
+                    Runtime.getRuntime().exit(1);
+                }
             }
-        } else if (config.getPortageTree() != null) {
+        } else if (!config.getPortageTree().isEmpty()) {
             config.getErrorWriter().println("WARNING: Portage tree is used "
                     + "only when refreshing cache.");
         }
@@ -277,7 +280,7 @@ public class Main {
                 case "--portage-tree":
                 case "-t":
                     i++;
-                    config.setPortageTree(Paths.get(args[i]).toAbsolutePath().
+                    config.addPortageTree(Paths.get(args[i]).toAbsolutePath().
                             normalize());
                     break;
                 case "--cache-file":

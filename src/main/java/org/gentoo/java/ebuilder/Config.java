@@ -88,7 +88,7 @@ public class Config {
     /**
      * Path to portage tree.
      */
-    private Path portageTree;
+    private SortedSet<Path> portageTree = new TreeSet<>();
     /**
      * Whether ebuild cache should be refreshed.
      */
@@ -365,17 +365,17 @@ public class Config {
      *
      * @return {@link #portageTree}
      */
-    public Path getPortageTree() {
+    public SortedSet<Path> getPortageTree() {
         return portageTree;
     }
 
     /**
-     * Setter for {@link #portageTree}.
+     * Add portageTrees to {@link #portageTree}.
      *
      * @param portageTree {@link #portageTree}
      */
-    public void setPortageTree(final Path portageTree) {
-        this.portageTree = portageTree;
+    public void addPortageTree(final Path portageTree) {
+        this.portageTree.add(portageTree);
     }
 
     /**

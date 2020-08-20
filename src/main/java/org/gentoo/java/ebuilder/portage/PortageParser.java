@@ -139,9 +139,11 @@ public class PortageParser {
         processedEbuilds = 0;
         eclassesCounts.clear();
 
-        config.getStdoutWriter().println("Parsing portage tree @ "
-                + config.getPortageTree() + " ...");
-        parseCategories(config.getPortageTree());
+        for (Path portageTree : config.getPortageTree()) {
+            config.getStdoutWriter().println("Parsing portage tree @ "
+                    + portageTree + " ...");
+            parseCategories(portageTree);
+        }
 
         final long endTimestamp = System.currentTimeMillis();
 

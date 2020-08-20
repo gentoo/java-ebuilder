@@ -22,8 +22,8 @@ Generating ebuild:
 
 Refreshing cache:
 --portage-tree|-t                  path to portage tree that should be parsed
-                                   when refreshing cache (default is
-                                   /usr/portage)
+                                   when refreshing cache (can be specified multiple
+                                   times, default is /usr/portage)
 --refresh-cache|-c                 refreshes java ebuild cache
 
 Common:
