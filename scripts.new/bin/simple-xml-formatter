@@ -1,0 +1,38 @@
+#!/usr/bin/env python3
+# -*- coding:utf-8 -*-
+
+'''
+Make an xml file parsable for Java.
+'''
+
+import sys
+
+try:
+    xml_file = sys.argv[1]
+    if xml_file == "-h" or xml_file == "--help":
+        raise TypeError
+except:
+    print("Usage: simple-xml-formatter <file.xml>")
+    sys.exit()
+
+# remove strange lines that do not start with "<" and locate
+# before the begining or after the ending of an xml file.
+def purify_xml(lines, order = 'f'):
+    if order == 'r':
+        order = range(len(lines))
+    else:
+        order = reversed(range(len(lines)))
+
+    for i in order:
+        if lines[i].startswith('<'):
+            break
+        else:
+            lines[i] = ''
+
+with open(xml_file) as f:
+    lines = f.readlines()
+    purify_xml(lines)
+    purify_xml(lines, 'r')
+ 
+with open(xml_file, 'w') as f:
+    f.writelines(lines)
