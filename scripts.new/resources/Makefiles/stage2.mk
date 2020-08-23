@@ -7,7 +7,7 @@ force-stage2: ${STAGE2_MAKEFILE} ${POST_STAGE1_CACHE}
 	make -f ${STAGE2_MAKEFILE} all -j`nproc` -B
 
 post-stage2:
-	for dir in "${MAVEN_OVERLAY_DIR}"/*; do \
+	for dir in ${MAVEN_OVERLAY_DIR}/*; do \
 		find $${dir} -type f -name \*.ebuild | grep . || continue;\
 		pushd $${dir} > /dev/null;\
 		parallel ebuild '$$(echo {}/*.ebuild | cut -d\  -f1)' digest ::: *;\
@@ -16,8 +16,9 @@ post-stage2:
 
 clean-stage2:
 	# just to make sure "${MAVEN_OVERLAY_DIR}" points to an overlay
-	[[ -f "${MAVEN_OVERLAY_DIR}"/profiles/repo_name ]] &&\
-		find "${MAVEN_OVERLAY_DIR}" -type f \
+	if [[ -f ${MAVEN_OVERLAY_DIR}/profiles/repo_name ]]; then\
+		find ${MAVEN_OVERLAY_DIR} -type f \
 		\( -name \*.ebuild \
 		-o  -name Manifest \)\
-		-delete
+		-delete;\
+	fi
