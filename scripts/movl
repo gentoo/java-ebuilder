@@ -1,92 +1,43 @@
 #!/bin/bash
-source "/etc/java-ebuilder.conf"
-tsh="/usr/lib/java-ebuilder/tree.sh"
-
-clean-maven() {
-    rm -f "${CACHEDIR}"/maven-cache
-    rm -rf "${MAVEN_OVERLAY_DIR}"/app-maven
-}
-
-clean-pom() {
-    rm -f "${POMDIR}"/*.pom
-}
-
-clean-cache() {
-    rm -f "${CACHEDIR}"/cache.{raw,}{0,1}
-    rm -f "${CACHEDIR}"/b{ebd,pom}
-}
-
-clean() {
-    clean-cache
-    clean-pom
-    clean-maven
-}
-
-rrdep() {
-    # regenerate reverse dependencies
-    for rdep in $(egrep -l "$1.*->" -r "${MAVEN_OVERLAY_DIR}"/app-maven); do
-	[[ ${rdep} = *.ebuild ]] && "${tsh}" ${rdep}
-    done
-}
-
-refresh() {
-    if [[ $1=*:* ]]; then
-	rrdep $1
-    else
-	# input: package name
-	for ebd in "${MAVEN_OVERLAY_DIR}"/app-maven/$1/*.ebuild; do
-	    mid=$(sed -nr 's,^MAVEN_ID="(.*)",\1,p' "${ebd}")
-	    rm "${ebd}"; "${tsh}" ${mid}
-    	    sed "/${mid}/d" -i "${CACHEDIR}"/maven-cache
-	    rrdep ${mid}
-	done
-    fi
-}
-
-build() {
-    : ${PORTDIR:=$(portageq get_repo_path $(portageq envvar EROOT) gentoo)}
-    : ${PORTAGE_TMPDIR:=$(portageq envvar PORTAGE_TMPDIR)}
-    export PORTAGE_TMPDIR
-
-    if [[ ! -f "${CACHEDIR}"/cache.0 ]]; then
-        # 1. Generate cache of java related packages from portage tree.
-        [[ -f "${CACHEDIR}"/cache.raw0 ]] || \
-            java-ebuilder --refresh-cache -t "${PORTDIR}" --cache-file "${CACHEDIR}"/cache.raw0
-
-        # 2. Find corresponding maven groupId, artifactId and version in the cache.
-        pushd "${CACHEDIR}" > /dev/null
-        ( echo 1.0; tail -n +2 cache.raw0 | parallel -j -1 /usr/lib/java-ebuilder/meta.sh; ) > cache.0
-        popd > /dev/null
-    fi
-
-    # do the same to java overlay
-    if [[ ! -f "${CACHEDIR}"/cache.1 ]]; then
-        if [[ -n "${JAVA_OVERLAY_DIR}" ]]; then
-            [[ -f "${CACHEDIR}"/cache.raw1 ]] || \
-                java-ebuilder --refresh-cache -t "${JAVA_OVERLAY_DIR}" --cache-file "${CACHEDIR}"/cache.raw1
-            pushd "${CACHEDIR}" > /dev/null
-            tail -n +2 cache.raw1 | parallel -j -1 /usr/lib/java-ebuilder/meta.sh > cache.1
-            popd > /dev/null
-        else
-            touch "${CACHEDIR}"/cache.1
-        fi
-    fi
-
-    for M in ${MAVEN_ARTS}; do
-        "${tsh}" ${M}
-    done
-
-    cd "${MAVEN_OVERLAY_DIR}"/app-maven
-    parallel ebuild '$(echo {}/*.ebuild | cut -d\  -f1)' digest ::: *
-}
+[[ ${CONFIG} ]] && CONFIG=$(printf "%q\n" "$(realpath "${CONFIG}")")
+export PATH="${PATH}:/usr/lib/java-ebuilder/bin"
+export EROOT=$(dirname /etc)
 
 if [[ $# -gt 0 ]]; then
-    funcs=$1
-    shift 1
+    if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+        echo This is a helper to automagically generate ebuild for 
+        echo Maven artifacts defined in ${EROOT}/etc/java-ebuilder.conf
+        echo
+        echo Usage: movl [options] [target] ...
+        echo Options: please refer to \`make -h\`
+        echo Targets:
+        echo "  all                alias for stage2 and post-stage2"
+        echo "  build              alias for stage2 and post-stage2"
+        echo "  stage1             resolve the dependency graph of the provided Maven artifact"
+        echo "  stage2             generate ebuild files of the whole dep graph"
+        echo "  force-stage2       force generate stage2 ebuild files"
+        echo "  post-stage2        generate digests for ebuilds"
+        echo "  clean-cache        remove cache files"
+        echo "  clean-stage1       remove stage1-related stuffs"
+        echo "  clean-stage2       remove stage2-related stuffs"
+        echo "  clean              remove all the generated stuffs"
+        echo "Bash Variables:"
+        echo "  CONFIG             path to the config file"
+        echo "                     default: ${EROOT}/etc/java-ebuilder.conf"
+        echo "  DEFAULT_CATEGORY   the default category of the generated ebuilds"
+        echo "                     default: app-maven"
+        echo "  MAVEN_NODEP        set this variable to stop tree.sh from recursively resolving"
+        echo "                     the dependencies of MAVEN_ARTS"
+        echo "  REPOSITORY         where to find the pom and jar files"
+        echo "                     default: https://repo1.maven.org/maven2"
+        echo "  TSH_NODEBUG        set this variable to make \`movl build\` more silent"
+        exit
+    fi
 else
-    funcs=build
+    movl -h
+    exit 0
 fi
 
-for func in ${funcs}; do
-    ${func} $@
-done
+cd "${EROOT}/usr/lib/java-ebuilder/Makefiles"
+make $@
+

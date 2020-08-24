@@ -38,31 +38,7 @@
             "0": [
                 [
                     "org.codehaus.mojo",
-                    "animal-sniffer"
-                ],
-                [
-                    "org.codehaus.mojo",
                     "animal-sniffer-annotations"
-                ],
-                [
-                    "org.codehaus.mojo",
-                    "animal-sniffer-ant-tasks"
-                ],
-                [
-                    "org.codehaus.mojo",
-                    "animal-sniffer-enforcer-rule"
-                ],
-                [
-                    "org.codehaus.mojo",
-                    "animal-sniffer-maven-plugin"
-                ],
-                [
-                    "org.codehaus.mojo",
-                    "animal-sniffer-parent"
-                ],
-                [
-                    "org.codehaus.mojo",
-                    "java-boot-classpath-detector"
                 ]
             ]
         },

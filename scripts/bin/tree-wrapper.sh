@@ -11,7 +11,7 @@ mkdir -p "${POMDIR}"
 mkdir -p "${CUR_STAGE_DIR}"
 
 for artifact in $MAVEN_ARTS; do
-    $TSH $artifact
+    "$TSH" $artifact
     if [[ $? -ne 0 ]]; then
         echo [!] While processing $artifact, TSH returned an error
         exit 1
