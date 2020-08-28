@@ -166,6 +166,7 @@ gebd() {
         # distributionManagement is invalid for maven 3
         # net.sf.jtidy:jtidy:r938 version is not maven-compliant
         sed -e '/<packaging>bundle/d' \
+            -e '/<packaging>eclipse-plugin/d' \
             -e '/<distributionManagement>/,/<\/distributionManagement>/d' \
             -e '/<build>/,/<\/build>/d' \
             -e '/<modules>/,/<\/modules>/d' \
