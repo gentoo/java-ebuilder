@@ -82,7 +82,7 @@ get_maven() {
             MV=$(xmllint --xpath "/metadata/versioning/versions/version/text()"\
                     "${ARTIFACT_METADATA}"\
                     | awk "NR==${line_number}{print $1}")
-            if compare-maven-version 2>&1 1>/dev/null; then
+            if compare-maven-version -h 2>/dev/null 1>/dev/null; then
                 TMP_SLOT=$(compare-maven-version --dep "${MV_RANGE}" --maven-version ${MV}) || continue
             fi
             eval $TMP_SLOT

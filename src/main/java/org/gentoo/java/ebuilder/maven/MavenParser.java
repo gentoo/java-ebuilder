@@ -133,7 +133,8 @@ public class MavenParser {
             xmlProcess = xmlBuilder.start();
             xmlProcess.waitFor(10, TimeUnit.MINUTES);
         } catch (final IOException | InterruptedException ex) {
-            config.getStdoutWriter().println('\n' + ex.toString());
+            config.getStdoutWriter().print("");
+            //config.getStdoutWriter().println('\n' + ex.toString());
         }
 
         if (process.exitValue() != 0) {
