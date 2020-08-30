@@ -3,6 +3,7 @@ package org.gentoo.java.ebuilder.maven;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.SortedSet;
@@ -44,13 +45,13 @@ public class MavenProject {
      */
     private Boolean hasTests;
     /**
-     * Lisences.
-     */
-    private SortedSet<String> licenses = new TreeSet<>();
-    /**
      * Homepage URL.
      */
     private String homepage;
+    /**
+     * Lisences.
+     */
+    private final SortedSet<String> licenses = new TreeSet<>();
     /**
      * Application main class.
      */
@@ -113,14 +114,12 @@ public class MavenProject {
     /**
      * Adds license to {@link #licenses}.
      *
-     * @param license {@link #licenses}
+     * @param portageLicenses {@link #licenses}
      */
     public void addLicense(final String portageLicenses) {
         final String[] parts = portageLicenses.split(":");
 
-        for (String eachLicense: parts) {
-            licenses.add(eachLicense);
-        }
+        licenses.addAll(Arrays.asList(parts));
     }
 
     /**
@@ -280,6 +279,40 @@ public class MavenProject {
     }
 
     /**
+     * deal with scope == "system" dependencies
+     *
+     * @param writer writer
+     *
+     * @return lines of ebuild variables
+     */
+    @SuppressWarnings("unchecked")
+    public String getExtraJars(final PrintWriter writer) {
+        String ret = "";
+        List<MavenDependency> systemDependencies = getDependencies(new String[]{
+            "system"});
+
+        for (final MavenDependency dependency : systemDependencies) {
+            switch (dependency.getGroupId()) {
+                case "com.sun":
+                    switch (dependency.getArtifactId()) {
+                        case "tools":
+                            ret += "JAVA_NEEDS_TOOLS=1\n";
+                            break;
+                        default:
+                            writer.println("Equivalent variable for "
+                                    + dependency.getArtifactId() + " not found.");
+                    }
+                    break;
+                default:
+                    writer.println("Equivalent variable for " + dependency.
+                            getGroupId() + " not found.");
+            }
+        }
+
+        return ret;
+    }
+
+    /**
      * Getter for {@link #groupId}.
      *
      * @return {@link #groupId}
@@ -295,6 +328,15 @@ public class MavenProject {
      */
     public void setGroupId(final String groupId) {
         this.groupId = groupId;
+    }
+
+    /**
+     * Setter for {@link #hasTests}
+     *
+     * @param hasTests {@link #hasTests}
+     */
+    public void setHasTests(boolean hasTests) {
+        this.hasTests = hasTests;
     }
 
     /**
@@ -421,37 +463,6 @@ public class MavenProject {
      */
     public void setSourceVersion(final JavaVersion sourceVersion) {
         this.sourceVersion = sourceVersion;
-    }
-
-    /**
-     * deal with scope == "system" dependencies
-     *
-     * @return lines of ebuild variables
-     */
-    @SuppressWarnings("unchecked")
-    public String getExtraJars(final PrintWriter writer) {
-        String ret = "";
-        List<MavenDependency> systemDependencies = getDependencies(new String[]{"system"});
-
-        for (final MavenDependency dependency : systemDependencies) {
-            switch (dependency.getGroupId()) {
-                case "com.sun":
-                    switch (dependency.getArtifactId()) {
-                        case "tools":
-                            ret += "JAVA_NEEDS_TOOLS=1\n";
-                            break;
-                        default:
-                            writer.println("Equivalent variable for " +
-                                dependency.getArtifactId() + " not found.");
-                    }
-                    break;
-                default:
-                    writer.println("Equivalent variable for " +
-                            dependency.getGroupId() + " not found.");
-            }
-        }
-
-        return ret;
     }
 
     /**
@@ -589,15 +600,6 @@ public class MavenProject {
         }
 
         return hasTests;
-    }
-
-    /**
-     * Setter for {@link #hasTests}
-     *
-     * @param hasTests {@link #hasTests}
-     */
-    public void setHasTests(boolean hasTests) {
-        this.hasTests = hasTests;
     }
 
     /**
