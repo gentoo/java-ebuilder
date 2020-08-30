@@ -33,14 +33,6 @@ public class MavenProject {
      */
     private String groupId;
     /**
-     * Whether the package has resources.
-     */
-    private Boolean hasResources;
-    /**
-     * Whether the package has test resources.
-     */
-    private Boolean hasTestResources;
-    /**
      * Whether the package has test classes.
      */
     private Boolean hasTests;
@@ -126,18 +118,38 @@ public class MavenProject {
      * Adds path to {@link #resourceDirectories}.
      *
      * @param path resource path
+     *
+     * @return true if the path was added, otherwise false
+     *
+     * @see #isValidResourcesDir(java.nio.file.Path)
      */
-    public void addResourceDirectory(final Path path) {
+    public boolean addResourceDirectory(final Path path) {
+        if (!isValidResourcesDir(path)) {
+            return false;
+        }
+
         resourceDirectories.add(path);
+
+        return true;
     }
 
     /**
-     * Adds path to {@link #testResourceDirectories}.
+     * Adds path to {@link #testResourceDirectories}. The path must be valid.
      *
      * @param path resource path
+     *
+     * @return true if the path was added, otherwise false
+     *
+     * @see #isValidResourcesDir(java.nio.file.Path)
      */
-    public void addTestResourceDirectory(final Path path) {
+    public boolean addTestResourceDirectory(final Path path) {
+        if (!isValidResourcesDir(path)) {
+            return false;
+        }
+
         testResourceDirectories.add(path);
+
+        return true;
     }
 
     /**
@@ -549,20 +561,7 @@ public class MavenProject {
      * @return {@link #hasResources}
      */
     public boolean hasResources() {
-        if (hasResources == null) {
-            hasResources = false;
-
-            for (final Path resources : resourceDirectories) {
-                if (resources.toFile().exists()
-                        && resources.toFile().list().length != 0) {
-                    hasResources = true;
-
-                    break;
-                }
-            }
-        }
-
-        return hasResources;
+        return !resourceDirectories.isEmpty();
     }
 
     /**
@@ -571,20 +570,7 @@ public class MavenProject {
      * @return {@link #hasTestResources}
      */
     public boolean hasTestResources() {
-        if (hasTestResources == null) {
-            hasTestResources = false;
-
-            for (final Path resources : testResourceDirectories) {
-                if (resources.toFile().exists()
-                        && resources.toFile().list().length != 0) {
-                    hasTestResources = true;
-
-                    break;
-                }
-            }
-        }
-
-        return hasTestResources;
+        return !testResourceDirectories.isEmpty();
     }
 
     /**
@@ -632,5 +618,18 @@ public class MavenProject {
         });
 
         return result;
+    }
+
+    /**
+     * Checks whether the provided path is a valid directory for resources. It
+     * must exist and contain at least one file.
+     *
+     * @param resources path to resources
+     *
+     * @return true if the resources directory is valid, otherwise false
+     */
+    private boolean isValidResourcesDir(final Path resources) {
+        return resources.toFile().exists()
+                && resources.toFile().list().length != 0;
     }
 }
