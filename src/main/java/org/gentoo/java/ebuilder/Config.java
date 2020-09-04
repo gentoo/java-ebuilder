@@ -94,6 +94,10 @@ public class Config {
      */
     private boolean refreshCache;
     /**
+     * Whether java-ebuilder will explictly unset hasTests of the Maven project.
+     */
+    private boolean skipTests;
+    /**
      * SLOT number.
      */
     private String slot;
@@ -525,5 +529,23 @@ public class Config {
      */
     public void setRefreshCache(final boolean refreshCache) {
         this.refreshCache = refreshCache;
+    }
+
+    /**
+     * Getter for {@link #skipTests}.
+     *
+     * @return {@link #skipTests}
+     */
+    public boolean willSkipTests() {
+        return skipTests;
+    }
+
+    /**
+     * Setter for {@link #skipTests}.
+     *
+     * @param skipTests {@link #skipTests}
+     */
+    public void setSkipTests(final boolean skipTests) {
+        this.skipTests = skipTests;
     }
 }

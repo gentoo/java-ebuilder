@@ -292,6 +292,9 @@ public class Main {
                 case "-c":
                     config.setRefreshCache(true);
                     break;
+                case "--skip-tests":
+                    config.setSkipTests(true);
+                    break;
                 case "--slot":
                 case "-s":
                     i++;

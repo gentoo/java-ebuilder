@@ -56,6 +56,10 @@ public class MavenParser {
                 mavenProject.setHasTests(true);
             }
 
+            if (config.willSkipTests()) {
+                mavenProject.setHasTests(false);
+            }
+
             result.add(mavenProject);
         });
 

@@ -21,4 +21,6 @@ clean-stage2:
 		\( -name \*.ebuild \
 		-o  -name Manifest \)\
 		-delete;\
+		find ${MAVEN_OVERLAY_DIR} -type d \
+		-empty -delete;\
 	fi

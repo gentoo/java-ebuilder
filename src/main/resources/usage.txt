@@ -16,6 +16,7 @@ Generating ebuild:
 --pom|-p <file>                    path to pom.xml that should be parsed,
                                    the path must be relative to workdir (can be
                                    specified multiple times)
+--skip-tests                       disable testing framework detecting
 --slot|-s  <slot>                  SLOT number
 --workdir|-w <dir>                 path to ebuild workdir (${WORKDIR}, default
                                    is current directory)
