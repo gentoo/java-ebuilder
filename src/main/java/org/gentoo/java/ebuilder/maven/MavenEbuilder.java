@@ -172,14 +172,16 @@ public class MavenEbuilder {
             final MavenProject mavenProject, final Config config) {
         Set<String> frameworks = new HashSet<>(10);
 
-        for (final MavenDependency dependency : mavenProject.
-                getTestDependencies()) {
-            frameworks.add(determineTestingFrameworkByDependency(dependency));
-        }
+        if (mavenProject.hasTests()) {
+            for (final MavenDependency dependency : mavenProject.
+                    getTestDependencies()) {
+                frameworks.add(determineTestingFrameworkByDependency(dependency));
+            }
 
-        for (final MavenDependency dependency : mavenProject.
-                getCommonDependencies()) {
-            frameworks.add(determineTestingFrameworkByDependency(dependency));
+            for (final MavenDependency dependency : mavenProject.
+                    getCommonDependencies()) {
+                frameworks.add(determineTestingFrameworkByDependency(dependency));
+            }
         }
 
         if (config.hasBinjarUri()) {
