@@ -552,11 +552,6 @@ public class MavenEbuilder {
                 mavenProjects, config.getForceMinJavaVersion()));
         writer.println(":*");
 
-        if (config.getDownloadUri() != null && config.getDownloadUri().
-                toString().matches("^.*?\\.(jar|zip)$")) {
-            writer.println("\tapp-arch/unzip");
-        }
-
         if (config.hasBinjarUri()) {
             if (hasCDepend && compileDependencies.isEmpty()) {
                 writer.println("\t!binary? ( ${CDEPEND} )");
@@ -633,6 +628,11 @@ public class MavenEbuilder {
         }
 
         writer.println('"');
+
+        if (config.getDownloadUri() != null && config.getDownloadUri().
+                toString().matches("^.*?\\.(jar|zip)$")) {
+            writer.println("\nBDEPEND=\"app-arch/unzip\"");
+        }
     }
 
     /**
