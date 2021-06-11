@@ -263,8 +263,9 @@ public class PortageParser {
         String groupId = null;
         String artifactId = null;
         String mavenVersion = null;
-        String[] mavenProvide = null;
+        List<String> mavenProvide = new ArrayList<>();
 
+        boolean readingMultiLineMavenProvide = false;
         try (final BufferedReader reader = new BufferedReader(
                 new InputStreamReader(Files.newInputStream(ebuild.toPath(),
                         StandardOpenOption.READ)))) {
@@ -282,31 +283,55 @@ public class PortageParser {
                 }
 
                 if (!line.isEmpty()) {
-                    final Matcher matcher = PATTERN_VARIABLE.matcher(line);
-
-                    if (matcher.matches()) {
-                        variables.put(matcher.group(1),
-                                matcher.group(2).replaceAll("(^\"|\"$)", ""));
-                    }
-
-                    if (line.startsWith("inherit ")) {
-                        eclasses = getJavaInheritEclasses(line);
-
-                        if (eclasses == null || eclasses.isEmpty()) {
-                            return;
+                    // Check if a multi-line MAVEN_PROVIDES declaration is
+                    // being read
+                    if (readingMultiLineMavenProvide) {
+                        if (!line.startsWith("\"")) {
+                            // Line contains an artifact ID
+                            mavenProvide.add(line.replace("\"", ""));
                         }
-                    } else if (line.startsWith("SLOT=")) {
-                        slot = line.substring("SLOT=".length()).replace(
-                                "\"", "").replaceAll("/.*", "");
-                    } else if (line.startsWith("JAVA_PKG_OPT_USE=")) {
-                        useFlag = line.substring("JAVA_PKG_OPT_USE=".length()).
-                                replace("\"", "");
-                    } else if (line.startsWith("MAVEN_ID=")) {
-                        mavenId = line.substring("MAVEN_ID=".length()).
-                                replace("\"", "");
-                    } else if (line.startsWith("MAVEN_PROVIDES=")) {
-                        mavenProvide = line.substring("MAVEN_PROVIDES=".length()).
-                                replace("\"", "").split(" ");
+                        if (line.contains("\"")) {
+                            // Closing double quote
+                            readingMultiLineMavenProvide = false;
+                        }
+                    } else {
+                        // Check if the line contains variable declaration
+                        final Matcher matcher = PATTERN_VARIABLE.matcher(line);
+
+                        if (matcher.matches()) {
+                            variables.put(matcher.group(1),
+                                    matcher.group(2).replaceAll("(^\"|\"$)", ""));
+                        }
+
+                        if (line.startsWith("inherit ")) {
+                            eclasses = getJavaInheritEclasses(line);
+
+                            if (eclasses == null || eclasses.isEmpty()) {
+                                return;
+                            }
+                        } else if (line.startsWith("SLOT=")) {
+                            slot = line.substring("SLOT=".length()).replace(
+                                    "\"", "").replaceAll("/.*", "");
+                        } else if (line.startsWith("JAVA_PKG_OPT_USE=")) {
+                            useFlag = line.substring("JAVA_PKG_OPT_USE=".length()).
+                                    replace("\"", "");
+                        } else if (line.startsWith("MAVEN_ID=")) {
+                            mavenId = line.substring("MAVEN_ID=".length()).
+                                    replace("\"", "");
+                        } else if (line.startsWith("MAVEN_PROVIDES=")) {
+                            boolean atMostOneDoubleQuote =
+                                    line.indexOf("\"") == line.lastIndexOf("\"");
+                            line = line.substring("MAVEN_PROVIDES=".length());
+                            if (!atMostOneDoubleQuote || !line.endsWith("\"")) {
+                                // Line contains an artifact ID
+                                mavenProvide.addAll(Arrays.asList(
+                                        line.replace("\"", "").split(" ")));
+                            }
+                            if (atMostOneDoubleQuote && line.contains("\"")) {
+                                // Only one double quote -- multi-line declaration
+                                readingMultiLineMavenProvide = true;
+                            }
+                        }
                     }
                 }
 
@@ -368,12 +393,10 @@ public class PortageParser {
         cacheItems.add(new CacheItem(category, pkg, version, slot, useFlag,
                 groupId, artifactId, mavenVersion, eclasses));
 
-        if (mavenProvide != null) {
-            for (String providedId: mavenProvide) {
-                final String[] parts = providedId.split(":");
-                cacheItems.add(new CacheItem(category, pkg, version, slot, useFlag,
-                        parts[0], parts[1], parts[2], eclasses));
-            }
+        for (String providedId: mavenProvide) {
+            final String[] parts = providedId.split(":");
+            cacheItems.add(new CacheItem(category, pkg, version, slot, useFlag,
+                    parts[0], parts[1], parts[2], eclasses));
         }
         countEclasses(eclasses);
     }
