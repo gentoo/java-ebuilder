@@ -110,6 +110,10 @@ public class MavenParser {
 
         final ProcessBuilder processBuilder = new ProcessBuilder("mvn", "-f",
                 pomFile.toString(), "help:effective-pom",
+                // If output was not suppressed, mvn would hang indefinitely
+                // if new artifact should be downloaded, probably because of
+                // limited output stream buffer size
+                "-q",
                 "-Doutput=" + outputPath);
         processBuilder.directory(config.getWorkdir().toFile());
         final ProcessBuilder xmlBuilder = new ProcessBuilder("simple-xml-formatter",
