@@ -394,6 +394,9 @@ public class PortageParser {
                 groupId, artifactId, mavenVersion, eclasses));
 
         for (String providedId: mavenProvide) {
+            // Allow declarations like MAVEN_PROVIDES="groupId:${PN}:${PV}"
+            providedId = providedId.replaceAll("\\$(\\{PN\\}|PN)", pkg).
+                    replaceAll("\\$(\\{PV\\}|PV)", pv);
             final String[] parts = providedId.split(":");
             cacheItems.add(new CacheItem(category, pkg, version, slot, useFlag,
                     parts[0], parts[1], parts[2], eclasses));
