@@ -35,7 +35,7 @@ public class MavenEbuilder {
     /**
      * EAPI version.
      */
-    private static final String EAPI = "7";
+    private static final String EAPI = "8";
     /**
      * Pattern for retrieval of tarball extension.
      */
